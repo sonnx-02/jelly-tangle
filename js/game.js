@@ -127,6 +127,8 @@
     paintedAt = new Float64Array(L.pic.total).fill(Infinity);
     visLeft = L.pic.ringSize.slice(); visRing = 0;
     ringFlash = picPulse = rackAlarm = -1e9; winT0 = -1;
+    // the level clock restarts at 0, so every timestamp taken on the old clock has to be dropped with it
+    shake = { t0: -1e9, amp: 0, dur: 1 };
     revealed = new Uint8Array(L.hoses.length); rotAnim = {};
     hintId = handId = -1; pickMode = false; lastInput = 0; nextWiggle = 2400; extraSlots = 0; bonusCoins = 0;
     FX.world.p.length = 0;
@@ -830,7 +832,10 @@
     if (!L) return;
     let shx = 0, shy = 0;
     const st = clock - shake.t0;
-    if (st < shake.dur) { const k = 1 - st / shake.dur; shx = Math.sin(st * 0.085) * shake.amp * k; shy = Math.cos(st * 0.11) * shake.amp * k * 0.7; }
+    if (st >= 0 && st < shake.dur) {
+      const k = 1 - st / shake.dur; shx = Math.sin(st * 0.085) * shake.amp * k; shy = Math.cos(st * 0.11) * shake.amp * k * 0.7;
+      ctx.drawImage(staticCv, 0, 0, lay.W, lay.H);   // unshifted backdrop, so the shaken scene never uncovers an old frame at the edges
+    }
     ctx.save(); ctx.translate(shx, shy);
     ctx.drawImage(staticCv, 0, 0, lay.W, lay.H);
     drawPicture(ctx); drawSide(ctx); drawRack(ctx); drawWorms(ctx); drawExits(ctx); drawBalls(ctx); drawShots(ctx);
