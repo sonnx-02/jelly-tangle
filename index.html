@@ -17,9 +17,13 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/icon.svg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@700;800;900&display=swap">
+<!-- fonts ship with the game (tools/fetch_fonts.py): no request to another site, works offline and in the Android app.
+     The Latin and Vietnamese files are preloaded so the first screen already draws in the right typeface. -->
+<link rel="preload" href="assets/fonts/Baloo2-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/Baloo2-vietnamese.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/Nunito-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/Nunito-vietnamese.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/fonts.css">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>

@@ -4,7 +4,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="vn.sonat.jellytangle">
 
-    <!-- fonts come from Google Fonts like on the web; the WebView caches them after the first online start -->
+    <!-- The game makes no network requests (fonts ship in the APK). Without this permission the WebView switches to
+         blockNetworkLoads, and not every WebView version still loads the in-APK https pages then, so it stays. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- navigator.vibrate() for the game's haptics -->
     <uses-permission android:name="android.permission.VIBRATE" />

@@ -38,9 +38,9 @@ Repo là một trang tĩnh nên cũng đẩy nguyên thư mục lên được Ne
 python tools/android/build_apk.py
 ```
 
-Ra file `dist/JellyTangle-1.0.0-debug.apk` (khoảng 100 KB). Script dùng thẳng công cụ của Android SDK (aapt2, javac, d8, zipalign, apksigner), không qua Gradle nên không tải thêm gì. SDK và JDK 17 lấy từ `ANDROID_HOME` / `JAVA_HOME`; nếu không đặt, script tự tìm trong bản Unity có cài Android Build Support (`C:\Program Files\Unity\Hub\Editor\<bản>\...\AndroidPlayer`).
+Ra file `dist/JellyTangle-1.0.1-debug.apk` (khoảng 260 KB, phần lớn là font). Script dùng thẳng công cụ của Android SDK (aapt2, javac, d8, zipalign, apksigner), không qua Gradle nên không tải thêm gì. SDK và JDK 17 lấy từ `ANDROID_HOME` / `JAVA_HOME`; nếu không đặt, script tự tìm trong bản Unity có cài Android Build Support (`C:\Program Files\Unity\Hub\Editor\<bản>\...\AndroidPlayer`).
 
-Cài lên máy: cắm điện thoại rồi chạy `adb install -r dist/JellyTangle-1.0.0-debug.apk`, hoặc chép file APK sang máy và mở (cho phép "cài ứng dụng không rõ nguồn gốc"). Khoá debug nằm ở `tools/android/keys/` (không đưa lên git) và được dùng lại, nên bản build sau cài đè lên bản trước được.
+Cài lên máy: cắm điện thoại rồi chạy `adb install -r dist/JellyTangle-1.0.1-debug.apk`, hoặc chép file APK sang máy và mở (cho phép "cài ứng dụng không rõ nguồn gốc"). Khoá debug nằm ở `tools/android/keys/` (không đưa lên git) và được dùng lại, nên bản build sau cài đè lên bản trước được.
 
 Bản phát hành ký bằng khoá riêng của bạn (mật khẩu truyền qua biến môi trường, không ghi ra dòng lệnh):
 
@@ -57,8 +57,13 @@ Thiết kế bản Android (`android/`):
 - **Màn chờ** cùng màu hồng với màn khởi động của game (Android 12+ dùng splash hệ thống), nên không có chớp trắng khi mở app.
 - **Toàn màn hình, khoá dọc**, vẽ tràn cả vùng tai thỏ; app báo độ cao tai thỏ cho trang qua `--st` / `--sb` để HUD tránh ra.
 - **Nút Back**: đóng popup đang mở; đang chơi thì mở menu tạm dừng; ở trang chủ thì đưa app xuống nền (`JT.App.back()` trong `js/main.js`). Rời app giữa màn thì khi quay lại gặp menu tạm dừng.
-- Android 8.0 (API 26) trở lên, target Android 15 (API 35). Quyền: Internet (tải font) và rung.
-- **Font**: Baloo 2 và Nunito vẫn tải từ Google Fonts như bản web. Lần đầu mở app cần mạng; sau đó WebView giữ font trong cache. Không có mạng ngay lần đầu thì chữ dùng font hệ thống.
+- **Chơi offline hoàn toàn**: font Baloo 2 và Nunito nằm sẵn trong game (`assets/fonts/`, xem mục Font bên dưới), app không gửi request nào ra mạng.
+- **Hơn bản web ở ba chỗ**: chọn tần số quét cao nhất của màn hình (90/120 Hz nếu máy có; trang web không tự chọn được); rung bằng bộ rung của máy (`window.JTNative.vibrate`, chạm ngắn dùng hiệu ứng tick/click có sẵn của Android, rung dài mạnh hơn rung ngắn); nếu Android tắt tiến trình WebView để lấy bộ nhớ, app dựng lại màn hình thay vì văng, tiến trình chơi vẫn còn.
+- Android 8.0 (API 26) trở lên, target Android 15 (API 35). Quyền: rung, và Internet. Game không dùng mạng; quyền Internet được giữ vì thiếu nó WebView chuyển sang chặn mạng (`blockNetworkLoads`), và không phải phiên bản WebView nào cũng còn nạp trang https nội bộ trong trạng thái đó.
+
+### Font
+
+Baloo 2 (700, 800) và Nunito (700, 800, 900) nằm trong `assets/fonts/` dưới dạng woff2, giấy phép SIL Open Font License (`assets/fonts/OFL-*.txt`). `css/fonts.css` khai báo chúng; mỗi phần (Latin, tiếng Việt, Latin mở rộng) chỉ được tải khi chữ trên màn hình cần đến. Muốn đổi độ đậm hay cập nhật font thì chạy lại `python tools/fetch_fonts.py`.
 
 ## Luật chơi
 
@@ -92,6 +97,9 @@ js/i18n.js              chuỗi Tiếng Việt và English
 js/util.js              toán, easing, màu, lưu tiến trình (localStorage)
 tools/levels.html       công cụ nướng màn
 tools/dev_server.py     server dev
+tools/fetch_fonts.py    tải font về assets/fonts và viết css/fonts.css
+tools/android/          build_apk.py: dựng file APK
+android/                bản Android: AndroidManifest, MainActivity (WebView), icon, màn chờ
 ```
 
 Không có file ảnh hay âm thanh nào: toàn bộ hình là vẽ thủ tục trên Canvas, âm thanh là tổng hợp.
@@ -153,4 +161,4 @@ JT.Save.reset()               // xoá tiến trình
 
 Đã có: 60 màn, 30 tranh trong 5 trang bộ sưu tập, 4 cơ chế nâng cao, 3 trợ giúp, sao, xu, hướng dẫn màn đầu, hai ngôn ngữ, lưu tiến trình, bản Android (APK).
 
-Chưa có: quảng cáo và mua trong ứng dụng (giá xu hiện chỉ để minh hoạ), service worker cho chơi offline, tệp font đóng gói sẵn (đang tải Baloo 2 và Nunito từ Google Fonts).
+Chưa có: quảng cáo và mua trong ứng dụng (giá xu hiện chỉ để minh hoạ), service worker để bản web chơi offline (bản Android đã chơi offline được).

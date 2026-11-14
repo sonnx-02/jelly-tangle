@@ -199,7 +199,15 @@
       if (hidden) { if (ac.state === 'running') ac.suspend(); }
       else if (ac.state === 'suspended') ac.resume().then(musicState).catch(() => {});
     },
-    buzz(p) { if (touched && cfg().haptic && navigator.vibrate) { try { navigator.vibrate(p); } catch (e) { /* unsupported */ } } },
+    // haptics: the Android app's native vibrator when there is one (crisper ticks, strength by length), else the web's
+    buzz(p) {
+      if (!touched || !cfg().haptic) return;
+      try {
+        const nat = window.JTNative;
+        if (nat && nat.vibrate) nat.vibrate(String(p));
+        else if (navigator.vibrate) navigator.vibrate(p);
+      } catch (e) { /* unsupported */ }
+    },
 
     // UI button: a small wooden tick
     click() { if (!ok() || !room(12)) return; took(); fm(note(7), 0.07, { gain: 0.36, ratio: 1, index: 0.9 }); },
