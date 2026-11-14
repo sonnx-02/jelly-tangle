@@ -1,0 +1,63 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Jelly Tangle · level baker</title>
+<style>
+  body { font: 14px/1.5 system-ui, sans-serif; margin: 24px; color: #4a2617; background: #fff7e8; }
+  table { border-collapse: collapse; margin-top: 12px; } td, th { padding: 2px 10px; text-align: right; font-variant-numeric: tabular-nums; }
+  tr.bad td { color: #c92f49; font-weight: 700; }
+  button { font: inherit; padding: 6px 14px; } input { font: inherit; width: 70px; }
+  #msg { font-weight: 700; }
+</style>
+<h1>Level baker</h1>
+<p>For each level this searches generator attempts until one is solvable and its random-bot fail rate sits in the level's band
+(easy 0–25%, normal 25–55%, hard 55–85%). The exact level is then stored as data, re-loaded, and solved again to prove the
+stored copy is the level that was tested. <b>Bake</b> writes <code>js/level-data.js</code> (needs <code>python tools/dev_server.py</code>).</p>
+<p>Levels <input id="n" type="number" value="60" min="1" max="300">
+Bot runs <input id="runs" type="number" value="60">
+Max attempts <input id="att" type="number" value="240">
+<button id="go">Bake</button> <span id="msg"></span></p>
+<table id="tbl"><tr><th>level</th><th>picture</th><th>band</th><th>attempt</th><th>bot fail</th><th>worms</th><th>solution</th><th>stored copy</th></tr></table>
+<script src="../js/util.js"></script>
+<script src="../js/core.js"></script>
+<script>
+(function () {
+  const C = JT.Core, $ = id => document.getElementById(id);
+  window.BAKE = { done: false, ok: false, rows: [], saved: null };
+  function run() {
+    const n = +$('n').value, runs = +$('runs').value, attempts = +$('att').value;
+    const levels = [], B = window.BAKE = { done: false, ok: false, rows: [], saved: null };
+    let i = 0, bad = 0;
+    (function step() {
+      if (i >= n) {
+        B.done = true; B.ok = !bad;
+        if (bad) { $('msg').textContent = bad + ' level(s) failed: nothing written'; return; }
+        fetch('/__bake', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ levels: levels }) })
+          .then(r => r.json()).then(j => { B.saved = j; $('msg').textContent = 'wrote ' + j.levels + ' levels to ' + j.file; })
+          .catch(e => { B.saved = { ok: false, error: String(e) }; $('msg').textContent = 'could not save (is tools/dev_server.py running?): ' + e; });
+        return;
+      }
+      const cfg = C.levelCfg(i), L = C.buildLevel(i, { runs: runs, attempts: attempts });
+      let row = { i: i, pic: cfg.pic, band: cfg.band, attempt: -1 }, okCopy = false;
+      if (L) {
+        const d = JSON.parse(JSON.stringify(C.levelToData(L)));
+        const L2 = C.levelFromData(i, d), sol = L2 && C.solve(L2, 60000);
+        okCopy = !!sol && C.failRate(L2, runs, L.meta.seed ^ 0xabcdef) === L.meta.failRate;
+        if (okCopy) levels.push(d);
+        row = { i: i, pic: cfg.pic, band: cfg.band, attempt: L.meta.attempt, fail: Math.round(L.meta.failRate * 100), worms: L.hoses.length, sol: L.meta.solution.length };
+      }
+      if (!okCopy) bad++;
+      row.ok = okCopy; B.rows.push(row);
+      const tr = document.createElement('tr');
+      if (!okCopy) tr.className = 'bad';
+      tr.innerHTML = '<td>' + (i + 1) + '</td><td>' + row.pic + '</td><td>' + row.band + '</td><td>' + row.attempt + '</td><td>' + (row.fail === undefined ? '-' : row.fail + '%') +
+        '</td><td>' + (row.worms || '-') + '</td><td>' + (row.sol || '-') + '</td><td>' + (okCopy ? 'ok' : 'FAILED') + '</td>';
+      $('tbl').appendChild(tr);
+      $('msg').textContent = (i + 1) + '/' + n;
+      i++;
+      setTimeout(step, 0);
+    })();
+  }
+  $('go').addEventListener('click', run);
+  if (new URLSearchParams(location.search).has('auto')) run();
+})();
+</script>

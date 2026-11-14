@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Jelly Tangle</title>
+<meta name="description" content="Gỡ những bé sâu kẹo dẻo ra khỏi hộp sô-cô-la và lấp đầy bức tranh jelly. Puzzle game cho mobile web.">
+<meta name="theme-color" content="#ffb9cf">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@700;800;900&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="world" aria-label="Jelly Tangle"></canvas>
+
+  <!-- home -->
+  <section id="home" class="screen">
+    <div class="homeTop">
+      <button class="rbtn" id="hSettings" aria-label="Settings"></button>
+      <div class="pill starPill"><i class="starIco"></i><span id="hStars">0</span></div>
+      <div class="pill coinPill"><i class="coinIco"></i><span class="coinVal">0</span></div>
+    </div>
+    <h1 class="logo" id="logo" aria-label="Jelly Tangle"></h1>
+    <div class="levelCard" id="levelCard">
+      <div class="ribbon" id="hLevel"></div>
+      <canvas id="hPic" width="264" height="264"></canvas>
+      <div class="picName" id="hPicName"></div>
+    </div>
+    <button class="btn green big pulse" id="hPlay"></button>
+    <button class="navBtn" id="hAlbum"><span class="nico"></span><b id="hAlbumTxt"></b><i id="hAlbumN"></i></button>
+  </section>
+
+  <!-- in-game HUD -->
+  <section id="hud" class="screen hidden">
+    <header id="topbar">
+      <button class="rbtn" id="btnPause" aria-label="Menu"></button>
+      <div id="hearts" aria-label="Hearts"></div>
+      <div id="levelPill"><b id="lvlText"></b><span id="lvlName"></span></div>
+      <div class="pill coinPill"><i class="coinIco"></i><span class="coinVal">0</span></div>
+    </header>
+    <div id="toast"></div>
+    <footer id="bottombar">
+      <button class="rbtn" id="btnRestart" aria-label="Restart"></button>
+      <div class="boosters">
+        <button class="booster" data-b="hint"><span class="bico"></span><span class="bcount"></span><span class="block"></span></button>
+        <button class="booster" data-b="pick"><span class="bico"></span><span class="bcount"></span><span class="block"></span></button>
+        <button class="booster" data-b="slot"><span class="bico"></span><span class="bcount"></span><span class="block"></span></button>
+      </div>
+      <button class="rbtn" id="btnHome" aria-label="Home"></button>
+    </footer>
+  </section>
+
+  <div id="banner"><span id="bannerText"></span></div>
+  <div id="modal" class="modal"><div class="card" id="card"></div></div>
+  <div id="curtain"></div>
+  <canvas id="fx"></canvas>
+  <div id="boot"><div class="bootLogo">Jelly<br>Tangle</div><div class="bootDots"><i></i><i></i><i></i></div></div>
+</div>
+
+<script src="js/util.js"></script>
+<script src="js/core.js"></script>
+<script src="js/level-data.js"></script>
+<script src="js/levels.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/render.js"></script>
+<script src="js/fx.js"></script>
+<script src="js/game.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

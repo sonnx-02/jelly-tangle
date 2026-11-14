@@ -1,0 +1,14 @@
+{
+  "name": "Jelly Tangle",
+  "short_name": "Jelly Tangle",
+  "description": "Gỡ sâu kẹo dẻo, lấp đầy tranh jelly.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#ff6aa6",
+  "theme_color": "#ffb9cf",
+  "icons": [
+    { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
