@@ -78,6 +78,14 @@ Sau khi sửa `LEVELS`, `PICS` hay luật trong `core.js`:
 
 Lưu ý: bộ sinh màn từng dùng phép sắp xếp với bộ so sánh ngẫu nhiên, khiến cùng một seed có thể ra màn khác nhau tuỳ thời điểm chạy. Bộ so sánh đã được sửa cho nhất quán, và game không còn dựng màn từ seed nữa mà đọc thẳng dữ liệu đã nướng.
 
+## Hiệu năng và hiển thị
+
+- **Tần số quét:** vòng lặp chạy bằng `requestAnimationFrame` và mọi chuyển động tính theo thời gian thực, nên trình duyệt cấp 60, 90 hay 120 Hz thì game vẽ đúng chừng đó. Trang web không tự chọn được tần số quét; phần game lo là giữ cho mỗi khung hình đủ nhẹ.
+- **Sâu đứng yên được dựng sẵn thành ảnh** (`wormSprite` trong `js/game.js`), chỉ con đang uốn, nháy hay phát sáng mới vẽ lại từng nét.
+- **Tự hạ độ phân giải:** bộ đo trong `js/main.js` theo dõi khoảng cách giữa các khung. Khi hơn 30% khung đến trễ, canvas hạ một nấc (2,5x → 2x → 1,5x); nếu hạ mà không đỡ thì trả lại độ nét cũ và thôi không thử nữa.
+- **Xem số liệu:** bật "Hiện FPS" trong Cài đặt để thấy `fps / Hz trình duyệt cấp / độ phân giải canvas`.
+- **Dark mode của điện thoại:** game chỉ có một bảng màu sáng. `index.html` và `css/style.css` khai báo `color-scheme` để Chrome, Samsung Internet và WebView trong app không tự đổi màu trang.
+
 ## Kiểm thử tự động
 
 Trong console của trang game:
@@ -85,6 +93,7 @@ Trong console của trang game:
 ```js
 JT.Debug.advance(2000)        // chạy vòng lặp 2 giây không cần requestAnimationFrame, trả về trạng thái
 JT.Debug.play(20, 1500)       // đi 20 nước theo solver, mỗi nước cách 1,5 giây
+JT.Debug.tick(t)              // chạy đúng một vòng lặp tại mốc thời gian t (ms): giả lập nhịp khung hình bất kỳ
 JT.Game.debug.state()         // trạng thái màn hiện tại
 JT.App.startLevel(8)          // nhảy tới màn 9 (chỉ số tính từ 0)
 JT.Save.reset()               // xoá tiến trình

@@ -81,7 +81,7 @@
       claimed: [],              // album pages whose reward was paid
       seenIntro: [],            // mechanic intros already shown
       tips: {},                 // one-time tips already shown
-      settings: { sfx: true, music: true, haptic: true, lang: 'vi' }
+      settings: { sfx: true, music: true, haptic: true, lang: 'vi', fps: false }
     };
   }
   const Save = JT.Save = {

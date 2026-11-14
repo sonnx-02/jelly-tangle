@@ -25,6 +25,7 @@
     sound: svg('<path d="M3.5 9.2h3.8L12.6 5v14l-5.3-4.2H3.5z" fill="currentColor"/><path d="M16 8.6a4.8 4.8 0 0 1 0 6.8M18.8 6a8.4 8.4 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>'),
     music: svg('<path d="M9 17.5V5.6l10-2.2v11.8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="6.4" cy="17.6" rx="3" ry="2.5" fill="currentColor"/><ellipse cx="16.4" cy="15.4" rx="3" ry="2.5" fill="currentColor"/>'),
     haptic: svg('<rect x="7.4" y="2.6" width="9.2" height="18.8" rx="2.6" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M3.4 8.6v6.8M20.6 8.6v6.8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>'),
+    fps: svg('<path d="M4.2 17.6a8.6 8.6 0 1 1 15.6 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M12 14.4l4.2-5.2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="12" cy="14.6" r="2" fill="currentColor"/>'),
     lang: svg('<circle cx="12" cy="12" r="8.6" fill="none" stroke="currentColor" stroke-width="2.3"/><path d="M3.6 12h16.8M12 3.4c-5 5.6-5 11.6 0 17.2M12 3.4c5 5.6 5 11.6 0 17.2" fill="none" stroke="currentColor" stroke-width="2"/>')
   };
   UI.ICON = ICON;
@@ -226,7 +227,7 @@
   function settingsRows() {
     const s = Save.data.settings;
     const row = (k, ico, lbl) => '<div class="setRow"><span class="lbl">' + ico + lbl + '</span><button class="switch' + (s[k] ? ' on' : '') + '" data-k="' + k + '" role="switch" aria-checked="' + !!s[k] + '" aria-label="' + lbl + '"></button></div>';
-    return row('sfx', ICON.sound, T('sound')) + row('music', ICON.music, T('music')) + row('haptic', ICON.haptic, T('haptic')) +
+    return row('sfx', ICON.sound, T('sound')) + row('music', ICON.music, T('music')) + row('haptic', ICON.haptic, T('haptic')) + row('fps', ICON.fps, T('showFps')) +
       '<div class="setRow col"><span class="lbl">' + ICON.lang + T('language') + '</span><div class="seg"><button data-l="vi" class="' + (s.lang !== 'en' ? 'on' : '') + '">Tiếng Việt</button><button data-l="en" class="' + (s.lang === 'en' ? 'on' : '') + '">English</button></div></div>';
   }
   UI.settings = function (inGame) {
@@ -243,6 +244,7 @@
       sw.classList.toggle('on', s[k]); sw.setAttribute('aria-checked', s[k]);
       if (k === 'music' || k === 'sfx') A.refresh();
       if (k === 'haptic' && s[k]) A.buzz(20);
+      if (k === 'fps') JT.App.showFps(s[k]);
     }));
     card.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
       Save.data.settings.lang = b.dataset.l; Save.save();

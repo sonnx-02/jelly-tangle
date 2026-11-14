@@ -7,7 +7,7 @@
     vi: {
       play: 'Chơi', level: 'Màn', next: 'Tiếp tục', retry: 'Chơi lại', home: 'Trang chủ', resume: 'Chơi tiếp',
       settings: 'Cài đặt', paused: 'Tạm dừng', album: 'Bộ sưu tập', sound: 'Âm thanh', music: 'Nhạc nền', haptic: 'Rung',
-      language: 'Ngôn ngữ', reset: 'Xoá tiến trình', resetAsk: 'Xoá toàn bộ tiến trình chơi?', yes: 'Xoá', no: 'Thôi', ok: 'OK!',
+      language: 'Ngôn ngữ', showFps: 'Hiện FPS', reset: 'Xoá tiến trình', resetAsk: 'Xoá toàn bộ tiến trình chơi?', yes: 'Xoá', no: 'Thôi', ok: 'OK!',
       loading: 'Đang bày kẹo…',
       ring: 'Vòng', nextRing: 'Kế tiếp', hard: 'Màn khó!', hardTag: 'KHÓ',
       winTitle: 'Hoàn thành!', winPraise: 'Hoàn hảo!', reward: 'Thưởng',
@@ -52,7 +52,7 @@
     en: {
       play: 'Play', level: 'Level', next: 'Continue', retry: 'Retry', home: 'Home', resume: 'Resume',
       settings: 'Settings', paused: 'Paused', album: 'Collection', sound: 'Sound', music: 'Music', haptic: 'Vibration',
-      language: 'Language', reset: 'Reset progress', resetAsk: 'Erase all progress?', yes: 'Erase', no: 'Cancel', ok: 'OK!',
+      language: 'Language', showFps: 'Show FPS', reset: 'Reset progress', resetAsk: 'Erase all progress?', yes: 'Erase', no: 'Cancel', ok: 'OK!',
       loading: 'Setting out the candy…',
       ring: 'Ring', nextRing: 'Up next', hard: 'Hard level!', hardTag: 'HARD',
       winTitle: 'Complete!', winPraise: 'Perfect!', reward: 'Reward',

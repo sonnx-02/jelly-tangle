@@ -13,6 +13,11 @@
   --display: 'Baloo 2', 'Trebuchet MS', system-ui, sans-serif;
   --body: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
+/* One fixed light palette: "only" stops the browser from re-colouring the page when the device is in dark mode.
+   The media query is intentional even though it repeats the rule: some browsers only skip their forced dark
+   mode when they find a prefers-color-scheme rule in the page's own CSS. */
+:root { color-scheme: only light; }
+@media (prefers-color-scheme: dark) { :root { color-scheme: only light; } }
 *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; }
 body {
@@ -25,6 +30,7 @@ button { font: inherit; color: inherit; border: 0; padding: 0; background: none;
 canvas#world, canvas#fx { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 canvas#world { touch-action: none; }
 canvas#fx { pointer-events: none; z-index: 40; }
+#fps { position: absolute; left: calc(var(--u) * 3.4); top: calc(var(--st) + var(--u) * 16); z-index: 45; pointer-events: none; padding: calc(var(--u) * .9) calc(var(--u) * 1.8) calc(var(--u) * .6); border-radius: calc(var(--u) * 2); background: rgba(74,38,23,.72); color: #fff; font: 800 calc(var(--u) * 2.9) / 1 var(--body); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .screen { position: absolute; inset: 0; pointer-events: none; }
 .screen > * { pointer-events: auto; }
 .hidden { display: none !important; }

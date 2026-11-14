@@ -10,14 +10,15 @@
     pick: { unlock: 4, grant: 2, pack: 2, price: 120 },
     slot: { unlock: 6, grant: 2, pack: 1, price: 100 }
   };
-  const App = JT.App = { W: 0, H: 0, state: 'boot', cur: 0, COST: { heart: 80, slot: 100, pick: 120 }, PAGE_COINS: 150 };
-  let world, wctx, fx, fctx, last = 0, bgCv = null, homeT = 0, fxDirty = false;
+  // scale: the most device pixels per CSS pixel the canvases may use; the frame meter below can lower it
+  const App = JT.App = { W: 0, H: 0, state: 'boot', cur: 0, scale: 2.5, COST: { heart: 80, slot: 100, pick: 120 }, PAGE_COINS: 150 };
+  let world, wctx, fx, fctx, fpsEl, last = 0, bgCv = null, homeT = 0, fxDirty = false, fxShown = true;
 
   App.resize = function () {
     const app = document.getElementById('app'), r = app.getBoundingClientRect();
     if (!r.width || !r.height) return;
     App.W = r.width; App.H = r.height;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    const dpr = Math.min(window.devicePixelRatio || 1, App.scale);
     R.dpr = dpr;
     for (const cv of [world, fx]) { cv.width = Math.round(App.W * dpr); cv.height = Math.round(App.H * dpr); }
     wctx.setTransform(dpr, 0, 0, dpr, 0, 0); fctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -62,13 +63,61 @@
     FX.update(dt);
     if (App.state === 'game') { G.update(dt); G.draw(wctx); }
     else if (App.state === 'home') { homeT += dt; drawHome(wctx, homeT); }
-    const busy = FX.busy();
-    if (busy || fxDirty) { fctx.clearRect(0, 0, App.W, App.H); if (busy) FX.drawTop(fctx); fxDirty = !!busy; }
+    const busy = !!FX.busy();
+    if (busy || fxDirty) { fctx.clearRect(0, 0, App.W, App.H); if (busy) FX.drawTop(fctx); fxDirty = busy; }
+    // an empty full-screen layer still costs the compositor a blend every frame: take it out while nothing flies
+    if (busy !== fxShown) { fxShown = busy; fx.style.visibility = busy ? 'visible' : 'hidden'; }
   };
+
+  // ---------- frame pacing ----------
+  // The loop runs on requestAnimationFrame, so it already ticks at whatever rate the browser grants the page
+  // (60, 90, 120 Hz) and every motion is scaled by real elapsed time. A page cannot ask for a refresh rate; what it
+  // controls is whether a frame is cheap enough to arrive on time. The meter watches frame intervals: when too many
+  // are late it lowers the canvas resolution one notch, and keeps the change only if that actually helped.
+  const RATES = [30, 45, 48, 50, 60, 72, 75, 90, 100, 120, 144, 165, 240];
+  const pace = { buf: new Float32Array(120), n: 0, i: 0, best: Infinity, mode: 'watch', lateBefore: 0, prevScale: 0, evalAt: 0, fps: 0, hz: 0 };
+  const cfgFps = () => !!Save.data.settings.fps;
+  function paceReset(now, hold) { pace.n = 0; pace.i = 0; pace.evalAt = now + (hold || 0); }
+  function setScale(v, now) { App.scale = v; App.resize(); paceReset(now, 1200); }
+  function paceFrame(now, raw) {
+    if (raw > 200) { paceReset(now, 500); return; }            // back from a hidden tab, or a one-off stall
+    pace.buf[pace.i] = raw; pace.i = (pace.i + 1) % pace.buf.length;
+    if (pace.n < pace.buf.length) pace.n++;
+    if (pace.n < 20 || now < pace.evalAt) return;
+    pace.evalAt = now + 500;
+    const a = Array.prototype.slice.call(pace.buf, 0, pace.n).sort((x, y) => x - y);
+    let sum = 0;
+    for (let k = 0; k < a.length; k++) sum += a[k];
+    const fast = a[Math.floor(a.length * 0.1)];                // the display's own interval shows in the fastest frames
+    if (fast > 2 && fast < pace.best) pace.best = fast;
+    pace.fps = Math.round(1000 * a.length / sum);
+    const rate = 1000 / pace.best;
+    pace.hz = RATES.reduce((b, r) => (Math.abs(r - rate) < Math.abs(b - rate) ? r : b), RATES[0]);
+    if (cfgFps()) fpsEl.textContent = pace.fps + ' fps / ' + pace.hz + ' Hz / ' + (Math.round(R.dpr * 10) / 10) + 'x';
+    if (pace.n < pace.buf.length || pace.mode === 'locked' || App.state === 'boot') return;
+    let late = 0;
+    for (let k = 0; k < a.length; k++) if (a[k] > pace.best * 1.5) late++;
+    late /= a.length;
+    if (pace.mode === 'trial') {
+      if (late < pace.lateBefore * 0.65) pace.mode = 'watch';                   // lower resolution helped: keep it
+      else { pace.mode = 'locked'; setScale(pace.prevScale, now); }             // it did not: restore the sharp picture
+      return;
+    }
+    if (late > 0.3) {
+      const cur = R.dpr, next = cur > 2 ? 2 : cur > 1.5 ? 1.5 : 0;
+      if (!next) { pace.mode = 'locked'; return; }
+      pace.lateBefore = late; pace.prevScale = App.scale; pace.mode = 'trial';
+      setScale(next, now);
+    }
+  }
+  App.showFps = function (on) { fpsEl.classList.toggle('hidden', !on); if (on) fpsEl.textContent = '...'; };
+  App.pace = pace;
+
   function frame(now) {
     requestAnimationFrame(frame);
     let dt = now - last; last = now;
     if (dt <= 0) return;
+    paceFrame(now, dt);
     if (dt > 50) dt = 50;
     App.step(dt);
   }
@@ -153,7 +202,9 @@
   function boot() {
     Save.load();
     world = document.getElementById('world'); fx = document.getElementById('fx');
-    wctx = world.getContext('2d'); fctx = fx.getContext('2d');
+    wctx = world.getContext('2d', { alpha: false });   // the scene always fills the canvas: an opaque surface composites faster
+    fctx = fx.getContext('2d');
+    fpsEl = document.getElementById('fps');
     UI.init();
     App.resize();
     initHome();
@@ -168,19 +219,25 @@
     document.addEventListener('pointerdown', () => A.unlock(), { passive: true });
     document.addEventListener('keydown', () => A.unlock());
     document.addEventListener('contextmenu', e => e.preventDefault());
+    App.showFps(cfgFps());
+    const t0 = performance.now();
     const ready = () => {
       if (App.state !== 'boot') return;
+      // the loop is already running with nothing to draw: give the meter a moment to see the bare refresh rate
+      if (pace.n < 24 && performance.now() - t0 < 700) { setTimeout(ready, 50); return; }
       App.state = 'home';
       UI.showHome(); UI.setBoosters();
       const bootEl = document.getElementById('boot');
       bootEl.classList.add('done');
       setTimeout(() => bootEl.remove(), 700);
-      last = performance.now();
-      requestAnimationFrame(frame);
       setTimeout(() => JT.Levels.get(Save.data.level), 60);   // warm the level cache while the menu is up
     };
+    last = performance.now();
+    requestAnimationFrame(frame);
     if (document.fonts && document.fonts.ready) {
-      Promise.all([document.fonts.load('800 20px "Baloo 2"'), document.fonts.load('900 20px Nunito')]).then(ready, ready);
+      const fontsIn = () => { R.fontGen++; ready(); };
+      Promise.all([document.fonts.load('800 20px "Baloo 2"'), document.fonts.load('900 20px Nunito')]).then(fontsIn, ready);
+      document.fonts.ready.then(() => { R.fontGen++; });
       setTimeout(ready, 1800);
     } else ready();
   }
@@ -188,6 +245,7 @@
   // Hooks for automated playtests: drive the loop without requestAnimationFrame.
   JT.Debug = {
     advance(ms) { let t = ms; while (t > 0) { const d = Math.min(16, t); App.step(d); t -= d; } return G.debug.state(); },
+    tick(now) { frame(now); },   // one real loop iteration at a chosen timestamp: lets a test feed the frame meter any cadence
     play(steps, gap) {
       for (let i = 0; i < steps; i++) {
         if (G.status() !== 'play') break;

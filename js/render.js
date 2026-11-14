@@ -3,7 +3,7 @@
 (function () {
   'use strict';
   const JT = window.JT, U = JT.U, C = JT.Core;
-  const R = JT.Render = { dpr: 1 };
+  const R = JT.Render = { dpr: 1, fontGen: 0 };   // fontGen bumps when web fonts arrive, so cached text is redrawn
   const INK = R.INK = '#4a2617';
   const TAU = U.TAU;
   R.COL = k => C.PALETTE[k].hex;

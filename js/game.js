@@ -717,6 +717,30 @@
     }
   }
 
+  function wormLabel(ctx, wv, h, pts, hex, hid, w, cell) {
+    const q = pts[Math.round((wv.numS / wv.Lw) * (pts.length - 1))];
+    R.label(ctx, hid ? '?' : String(h.paint), q.x, q.y - w * 0.04, Math.max(9, cell * 0.34), '#ffffff', hid ? '#746d92' : U.shade(hex, -0.58));
+  }
+  // body + number of a resting worm, rendered once at device resolution and aligned to whole device pixels
+  function wormSprite(wv, h, pts, hex, hid, w, cell, key) {
+    const dpr = R.dpr, m = w * 0.9;
+    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    for (let i = 0; i < pts.length; i++) {
+      const p = pts[i];
+      if (p.x < x0) x0 = p.x; if (p.x > x1) x1 = p.x;
+      if (p.y < y0) y0 = p.y; if (p.y > y1) y1 = p.y;
+    }
+    const px0 = Math.floor((x0 - m) * dpr), py0 = Math.floor((y0 - m) * dpr);
+    const pw = Math.ceil((x1 + m) * dpr) - px0, ph = Math.ceil((y1 + m) * dpr) - py0;
+    const cv = wv.spr || (wv.spr = document.createElement('canvas'));
+    cv.width = pw; cv.height = ph;
+    const c = cv.getContext('2d');
+    c.setTransform(dpr, 0, 0, dpr, -px0, -py0);
+    R.worm(c, pts, { hex: hex, w: w, wrap: hid });
+    wormLabel(c, wv, h, pts, hex, hid, w, cell);
+    wv.sprX = px0 / dpr; wv.sprY = py0 / dpr; wv.sprW = pw / dpr; wv.sprH = ph / dpr; wv.sprKey = key;
+  }
+
   function drawWorms(ctx) {
     const cell = lay.cell, w = cell * 0.6, hr = w * 0.62, n = L.hoses.length;
     for (let id = 0; id < n; id++) {
@@ -736,21 +760,29 @@
       } else {
         if (wv.ver !== layVer) { wv.pts = pathPts(wv.path, 0, wv.Lw, []); wv.ver = layVer; }
         pts = wv.pts;
-        const wt = clock - wv.wig;
-        if (wt < 560) pts = wiggle(pts, w * 0.17 * Math.sin(Math.PI * wt / 560), wt * 0.022);
       }
+      const wt = clock - wv.wig, wig = !wv.bump && wt < 560;
+      if (wig) pts = wiggle(pts, w * 0.17 * Math.sin(Math.PI * wt / 560), wt * 0.022);
       const jt = clock - wv.jig, ox = jt < 320 ? Math.sin(jt * 0.075) * w * 0.16 * (1 - jt / 320) : 0;
       const ft = clock - wv.flash, flash = ft < 450 ? 0.8 * (1 - ft / 450) : 0;
       const head = pts[pts.length - 1], tr = k !== 1 || ox !== 0;
       if (tr) { const m = pts[pts.length >> 1]; ctx.save(); ctx.translate(m.x + ox, m.y); ctx.scale(k, k); ctx.translate(-m.x, -m.y); }
       const glow = id === hintId ? 0.6 + 0.35 * Math.sin(clock * 0.009) : pickMode ? 0.25 + 0.12 * Math.sin(clock * 0.006 + id) : 0;
-      R.worm(ctx, pts, { hex: hex, w: w, glow: glow, wrap: hid, flash: flash });
+      const rt = clock - wv.rev;
+      // A resting worm is a picture that does not change, so its body and number are drawn once into a sprite and
+      // blitted. Only a worm that is bending, flashing or glowing is stroked live. This is most of the frame cost.
+      const live = !!wv.bump || wig || flash > 0 || glow > 0 || rt < 360;
+      if (live) {
+        R.worm(ctx, pts, { hex: hex, w: w, glow: glow, wrap: hid, flash: flash });
+        wormLabel(ctx, wv, h, pts, hex, hid, w, cell);
+      } else {
+        const key = layVer + (hid ? 'w' : 'c') + R.fontGen;
+        if (wv.sprKey !== key) wormSprite(wv, h, pts, hex, hid, w, cell, key);
+        ctx.drawImage(wv.spr, wv.sprX, wv.sprY, wv.sprW, wv.sprH);
+      }
       if (clock > wv.blink) { wv.blinkT = clock; wv.blink = clock + U.rand(2200, 5200); }
       R.head(ctx, head.x, head.y, headAngle(id), hr, { hex: hex, blink: clock - wv.blinkT < 130 ? 1 : 0, sleepy: C.isCovered(L, S, id), wrap: hid, flash: flash });
       if (h.rot && !hid) R.spinRing(ctx, head.x, head.y, hr * 1.42, clock * 0.0024);
-      const q = pts[Math.round((wv.numS / wv.Lw) * (pts.length - 1))];
-      R.label(ctx, hid ? '?' : String(h.paint), q.x, q.y - w * 0.04, Math.max(9, cell * 0.34), '#ffffff', hid ? '#746d92' : U.shade(hex, -0.58));
-      const rt = clock - wv.rev;
       if (rt < 360) { ctx.globalAlpha = 0.9 * (1 - rt / 360); R.worm(ctx, pts, { hex: '#ffffff', w: w * (1 + 0.5 * rt / 360) }); ctx.globalAlpha = 1; }
       if (tr) ctx.restore();
     }

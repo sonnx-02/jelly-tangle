@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Jelly Tangle</title>
 <meta name="description" content="Gỡ những bé sâu kẹo dẻo ra khỏi hộp sô-cô-la và lấp đầy bức tranh jelly. Puzzle game cho mobile web.">
+<!-- The game has one fixed candy palette. Browsers that auto-darken light pages when the phone is in dark mode
+     (Chrome "Auto Dark Theme", Samsung Internet, Android in-app WebViews) skip pages that say they handle both
+     schemes; css/style.css then pins the page to light. -->
+<meta name="color-scheme" content="light dark">
+<meta name="darkreader-lock">
 <meta name="theme-color" content="#ffb9cf">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -62,6 +67,7 @@
   <div id="modal" class="modal"><div class="card" id="card"></div></div>
   <div id="curtain"></div>
   <canvas id="fx"></canvas>
+  <div id="fps" class="hidden"></div>
   <div id="boot"><div class="bootLogo">Jelly<br>Tangle</div><div class="bootDots"><i></i><i></i><i></i></div></div>
 </div>
 
