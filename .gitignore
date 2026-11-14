@@ -4,3 +4,9 @@ __pycache__/
 Thumbs.db
 .vscode/
 .idea/
+# Android build output and signing keys (tools/android/build_apk.py)
+dist/
+tools/android/build/
+tools/android/keys/
+*.keystore
+*.jks

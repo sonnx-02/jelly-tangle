@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 9+: the game draws under the camera cutout; MainActivity tells the page how far to keep its HUD clear -->
+    <style name="Theme.JellyTangle" parent="Base.JellyTangle">
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+    </style>
+</resources>

@@ -204,6 +204,13 @@
     if (act === 'slot') G.addSlot();
     else { if (!free) { d.boosters.pick++; Save.save(); UI.setBoosters(); } G.setPick(true); }
   };
+  // Android back button (android/…/MainActivity.java calls this). true = handled here: a popup closes, or a level
+  // pauses. false = nothing to close at the home screen, so Android sends the app to the background.
+  App.back = function () {
+    if (UI.modalOpen()) { UI.dismiss(); return true; }
+    if (App.state === 'game') { if (G.status() === 'play') UI.settings(true); return true; }
+    return false;
+  };
   App.addCoins = function (n) { Save.data.coins += n; Save.save(); UI.setCoins(Save.data.coins); };
   App.spendBooster = function (k) { const b = Save.data.boosters; b[k] = Math.max(0, b[k] - 1); Save.save(); UI.setBoosters(); };
   App.buyBooster = function (k) {
@@ -231,6 +238,10 @@
       const r = world.getBoundingClientRect();
       G.pointerDown(e.clientX - r.left, e.clientY - r.top);
       e.preventDefault();
+    });
+    // leaving the app (or tab) in the middle of a level: come back to the pause menu, not to a level already running
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && App.state === 'game' && G.status() === 'play' && !UI.modalOpen()) UI.settings(true);
     });
     document.addEventListener('pointerdown', () => A.unlock(), { passive: true });
     document.addEventListener('keydown', () => A.unlock());

@@ -159,6 +159,8 @@
   };
   UI.closeModal = function () { $('modal').classList.remove('open'); modalDismiss = null; JT.Game.paused = false; };
   UI.modalOpen = () => $('modal').classList.contains('open');
+  // close the open popup the way its close button would; popups that must be answered (win, fail, intro) stay
+  UI.dismiss = function () { if (modalDismiss) modalDismiss(); };
   const on = (card, sel, fn) => { const e = card.querySelector(sel); if (e) e.addEventListener('click', fn); };
   const price = n => '<span class="price"><i></i>' + n + '</span>';
 
