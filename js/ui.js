@@ -10,14 +10,12 @@
   const svg = (body, attrs) => '<svg viewBox="0 0 24 24" ' + (attrs || '') + '>' + body + '</svg>';
   const ICON = {
     gear: svg('<circle cx="12" cy="12" r="8.2" stroke-width="3.2" stroke-dasharray="3.22 3.22"/><circle cx="12" cy="12" r="5.1" stroke-width="3.6"/>', 'fill="none" stroke="currentColor"'),
-    restart: svg('<path d="M19.2 12.4a7.2 7.2 0 1 1-2.4-5.6"/><path d="M17.6 2.6v4.9h-4.9"/>', 'fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"'),
-    home: svg('<path d="M3.2 11.6 12 3.8l8.8 7.8" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.8 10.8v8a1.6 1.6 0 0 0 1.6 1.6h2.8v-5.2h3.6v5.2h2.8a1.6 1.6 0 0 0 1.6-1.6v-8L12 5.6z" fill="currentColor"/>'),
+    pause: svg('<rect x="5.6" y="4.4" width="4.4" height="15.2" rx="2.2"/><rect x="14" y="4.4" width="4.4" height="15.2" rx="2.2"/>', 'fill="currentColor"'),
     close: svg('<path d="M6 6l12 12M18 6 6 18"/>', 'fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"'),
     left: svg('<path d="M15 5l-7 7 7 7"/>', 'fill="none" stroke="#fff" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"'),
     right: svg('<path d="M9 5l7 7-7 7"/>', 'fill="none" stroke="#fff" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"'),
     lock: svg('<path d="M7.8 10.5V8a4.2 4.2 0 0 1 8.4 0v2.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><rect x="4.8" y="10" width="14.4" height="10.6" rx="3" fill="currentColor"/>'),
     star: svg('<path d="M12 1.8l3.1 6.3 6.9 1-5 4.9 1.2 6.9L12 17.6l-6.2 3.3L7 14 2 9.1l6.9-1z" fill="#ffc93c" stroke="#c47d0a" stroke-width="1.5" stroke-linejoin="round"/><path d="M8.3 9.4l2-.4 1-2" fill="none" stroke="#fff6c9" stroke-width="1.4" stroke-linecap="round"/>'),
-    heart: svg('<path d="M12 20.8s-7.7-4.8-9.5-9.5C1.3 8 3.3 4.5 6.9 4.3c2-.1 3.6.9 5.1 2.8 1.5-1.9 3.1-2.9 5.1-2.8 3.6.2 5.6 3.7 4.4 7-1.8 4.7-9.5 9.5-9.5 9.5z" fill="#ff5a6e" stroke="#b3203c" stroke-width="1.6" stroke-linejoin="round"/><path d="M6.4 8.2a2.6 2.6 0 0 1 2-1.4" fill="none" stroke="#ffd0d6" stroke-width="1.6" stroke-linecap="round"/>'),
     hint: svg('<path d="M12 2.4a6.9 6.9 0 0 0-4.1 12.4c.6.5 1 1.2 1 1.9v.9h6.2v-.9c0-.7.4-1.4 1-1.9A6.9 6.9 0 0 0 12 2.4z" fill="#fff" stroke="' + INK + '" stroke-width="1.7" stroke-linejoin="round"/><path d="M9.2 20h5.6M10.4 22.3h3.2" stroke="' + INK + '" stroke-width="1.9" stroke-linecap="round"/><path d="M9 7.6a3.7 3.7 0 0 1 2.7-1.9" fill="none" stroke="#ffc93c" stroke-width="1.7" stroke-linecap="round"/>'),
     pick: svg('<g fill="none" stroke-linecap="round" stroke-linejoin="round"><g stroke="' + INK + '" stroke-width="5.2"><path d="M12 4c-5.6 3-7.2 8.8-5 15.8"/><path d="M12 4c5.6 3 7.2 8.8 5 15.8"/></g><g stroke="#fff" stroke-width="2.6"><path d="M12 4c-5.6 3-7.2 8.8-5 15.8"/><path d="M12 4c5.6 3 7.2 8.8 5 15.8"/></g></g><circle cx="12" cy="4.2" r="2.7" fill="#fff" stroke="' + INK + '" stroke-width="1.6"/>'),
     slot: svg('<rect x="1.6" y="6.6" width="20.8" height="10.8" rx="5.4" fill="#fff" stroke="' + INK + '" stroke-width="1.7"/><circle cx="7.4" cy="12" r="2.9" fill="#ffb5d3"/><circle cx="16.6" cy="12" r="3.3" fill="#45e08a"/><path d="M16.6 10.2v3.6M14.8 12h3.6" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>'),
@@ -33,8 +31,7 @@
 
   // ---------- init ----------
   UI.init = function () {
-    $('hSettings').innerHTML = ICON.gear; $('btnPause').innerHTML = ICON.gear;
-    $('btnRestart').innerHTML = ICON.restart; $('btnHome').innerHTML = ICON.home;
+    $('hSettings').innerHTML = ICON.gear; $('btnPause').innerHTML = ICON.pause;
     document.querySelector('#hAlbum .nico').innerHTML = ICON.album;
     document.querySelectorAll('.booster').forEach(b => {
       b.querySelector('.bico').innerHTML = ICON[b.dataset.b];
@@ -49,8 +46,6 @@
     $('hAlbum').addEventListener('click', () => UI.album());
     $('hSettings').addEventListener('click', () => UI.settings(false));
     $('btnPause').addEventListener('click', () => UI.settings(true));
-    $('btnRestart').addEventListener('click', () => JT.App.startLevel(JT.App.cur));
-    $('btnHome').addEventListener('click', () => JT.App.goHome());
     $('modal').addEventListener('click', e => { if (e.target === $('modal') && modalDismiss) modalDismiss(); });
     document.addEventListener('click', e => { if (e.target.closest && e.target.closest('button')) A.click(); }, true);
     UI.refreshTexts();
@@ -84,15 +79,6 @@
     $('lvlText').textContent = T('level') + ' ' + (idx + 1);
     $('lvlName').textContent = JT.I18n.picName(L.pic);
     $('levelPill').classList.toggle('hard', L.meta.band === 'hard');
-  };
-  UI.setHearts = function (n, hit) {
-    const el = $('hearts');
-    if (el.children.length !== 3) el.innerHTML = ICON.heart + ICON.heart + ICON.heart;
-    for (let i = 0; i < 3; i++) {
-      const s = el.children[i], off = i >= n;
-      if (hit && off && !s.classList.contains('off')) { s.classList.remove('hit'); void s.getBoundingClientRect(); s.classList.add('hit'); }
-      s.classList.toggle('off', off);
-    }
   };
   UI.setCoins = function (n) { document.querySelectorAll('.coinVal').forEach(e => { e.textContent = n; }); };
   function coinIcon() { return document.querySelector((JT.App.state === 'game' ? '#hud' : '#home') + ' .coinPill .coinIco'); }
@@ -203,8 +189,7 @@
   UI.fail = function (reason) {
     const d = Save.data, G = JT.Game, cost = JT.App.COST;
     let title, text, label, free = false, cst = 0, disabled = false, act;
-    if (reason === 'hearts') { title = T('failHearts'); text = T('failHeartsText'); label = T('addHeart'); cst = cost.heart; act = 'heart'; }
-    else if (reason === 'rack') {
+    if (reason === 'rack') {
       title = T('failRack'); text = T('failRackText'); label = T('addSlot'); cst = cost.slot; act = 'slot';
       free = d.unlocked.slot && d.boosters.slot > 0; disabled = !G.canAddSlot();
     } else { title = T('failStuck'); text = T('failStuckText'); label = T('usePick'); cst = cost.pick; act = 'pick'; free = d.unlocked.pick && d.boosters.pick > 0; }

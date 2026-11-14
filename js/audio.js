@@ -1,4 +1,5 @@
-/* All sound is synthesised with WebAudio: no audio files. SFX, a soft generative music loop, and haptics. */
+/* All sound is synthesised with WebAudio: no audio files. SFX, a soft generative music loop, and haptics.
+   Turned down after playtest feedback that the SFX sounded wild: no hiss layers, softer bumps, sparser paint ticks. */
 (function () {
   'use strict';
   const JT = window.JT;
@@ -12,17 +13,17 @@
     if (!AC) return false;
     try {
       ac = new AC();
-      master = ac.createGain(); master.gain.value = 0.9;
+      master = ac.createGain(); master.gain.value = 0.75;
       const comp = ac.createDynamicsCompressor();
       comp.threshold.value = -16; comp.knee.value = 18; comp.ratio.value = 5; comp.attack.value = 0.004; comp.release.value = 0.2;
       master.connect(comp); comp.connect(ac.destination);
-      sfxBus = ac.createGain(); sfxBus.gain.value = 0.75; sfxBus.connect(master);
+      sfxBus = ac.createGain(); sfxBus.gain.value = 0.6; sfxBus.connect(master);
       musBus = ac.createGain(); musBus.gain.value = 0; musBus.connect(master);
       const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2400; lp.Q.value = 0.3;
       pluckBus = ac.createGain(); pluckBus.connect(lp); lp.connect(musBus);
       echo = ac.createDelay(1); echo.delayTime.value = 0.3125;
-      const fb = ac.createGain(); fb.gain.value = 0.3;
-      const wet = ac.createGain(); wet.gain.value = 0.3;
+      const fb = ac.createGain(); fb.gain.value = 0.18;
+      const wet = ac.createGain(); wet.gain.value = 0.2;
       lp.connect(echo); echo.connect(fb); fb.connect(echo); echo.connect(wet); wet.connect(musBus);
       noiseBuf = ac.createBuffer(1, Math.floor(ac.sampleRate * 0.6), ac.sampleRate);
       const d = noiseBuf.getChannelData(0);
@@ -63,8 +64,13 @@
   const PENTA = [1, 9 / 8, 5 / 4, 3 / 2, 5 / 3, 2, 9 / 4, 5 / 2, 3, 10 / 3, 4];
   function mallet(f, gain, delay) {
     tone(f, 0.24, { gain: gain, delay: delay });
-    tone(f * 2, 0.12, { gain: gain * 0.3, type: 'triangle', delay: delay });
-    tone(f * 4, 0.05, { gain: gain * 0.25, delay: delay });
+    tone(f * 2, 0.12, { gain: gain * 0.25, type: 'triangle', delay: delay });
+    tone(f * 4, 0.05, { gain: gain * 0.12, delay: delay });
+  }
+  // the paint tick plays several times a second, so it stays round and quiet
+  function drop(f, gain) {
+    tone(f, 0.18, { gain: gain, attack: 0.012 });
+    tone(f * 2, 0.07, { gain: gain * 0.15, type: 'triangle', attack: 0.012 });
   }
 
   // ---------- music ----------
@@ -101,9 +107,9 @@
       const bar = Math.floor(step / 8) % 8, s = step % 8, ch = CH[bar];
       if (s === 0) bass(hz(ch[0]), nextT, 0.3);
       if (s === 4) bass(hz(ch[0] + 7), nextT, 0.16);
-      pluck(hz(ch[1][ARP[s]]), nextT, 0.085, 0.4);
+      pluck(hz(ch[1][ARP[s]]), nextT, 0.065, 0.4);
       const m = MEL[bar % 4][s];
-      if (m >= 0) pluck(hz(ch[1][m] + 12), nextT, 0.11, 0.9);
+      if (m >= 0) pluck(hz(ch[1][m] + 12), nextT, 0.08, 0.9);
       nextT += sd; step++;
     }
   }
@@ -112,7 +118,7 @@
     if (want && !musOn) {
       musOn = true; nextT = ac.currentTime + 0.1;
       musBus.gain.cancelScheduledValues(ac.currentTime);
-      musBus.gain.setTargetAtTime(0.55, ac.currentTime, 0.6);
+      musBus.gain.setTargetAtTime(0.4, ac.currentTime, 0.6);
       if (!timer) timer = setInterval(schedule, 90);
     } else if (!want && musOn) {
       musOn = false;
@@ -137,46 +143,45 @@
     buzz(p) { if (touched && cfg().haptic && navigator.vibrate) { try { navigator.vibrate(p); } catch (e) { /* unsupported */ } } },
 
     click() { if (!ok()) return; tone(660, 0.07, { gain: 0.12, to: 880 }); },
-    whoosh() { if (!ok()) return; noise(0.24, { f: 500, to: 3200, q: 0.8, gain: 0.2 }); tone(260, 0.2, { type: 'triangle', gain: 0.07, to: 720 }); },
-    pop(k) { if (!ok()) return; const f = 520 * Math.pow(1.06, Math.min(k || 0, 14)); tone(f, 0.11, { gain: 0.22, to: f * 0.42 }); noise(0.03, { f: 3000, q: 0.5, gain: 0.05 }); },
-    land() { if (!ok()) return; tone(340, 0.13, { gain: 0.26, to: 150 }); tone(700, 0.07, { gain: 0.09, delay: 0.03, to: 980 }); },
+    whoosh() { if (!ok()) return; noise(0.22, { f: 400, to: 1600, q: 0.7, gain: 0.06 }); tone(260, 0.2, { type: 'triangle', gain: 0.05, to: 620 }); },
+    pop(k) { if (!ok()) return; const f = 520 * Math.pow(1.06, Math.min(k || 0, 14)); tone(f, 0.11, { gain: 0.13, to: f * 0.5 }); },
+    land() { if (!ok()) return; tone(340, 0.13, { gain: 0.16, to: 170 }); tone(700, 0.07, { gain: 0.05, delay: 0.03, to: 900 }); },
     paint(frac) {
       if (!ok()) return;
       const n = performance.now();
-      if (n - lastPaint < 42) return;
+      if (n - lastPaint < 95) return;
       lastPaint = n;
-      mallet(523.25 * PENTA[Math.min(10, Math.floor(frac * 11))], 0.085, 0);
+      drop(523.25 * PENTA[Math.min(10, Math.floor(frac * 11))], 0.05);
     },
     ringDone(r) {
       if (!ok()) return;
       const base = 523.25 * Math.pow(2, (r * 2) / 12);
-      [1, 5 / 4, 3 / 2, 2].forEach((m, i) => mallet(base * m, 0.15, i * 0.065));
-      noise(0.5, { f: 7000, type: 'highpass', gain: 0.035, delay: 0.1 });
+      [1, 5 / 4, 3 / 2, 2].forEach((m, i) => mallet(base * m, 0.11, i * 0.07));
     },
-    merge() { if (!ok()) return; tone(620, 0.08, { gain: 0.16, to: 930 }); tone(930, 0.14, { gain: 0.14, delay: 0.07, to: 1400 }); },
-    mix() { if (!ok()) return; [420, 560, 760].forEach((f, i) => tone(f, 0.14, { gain: 0.13, delay: i * 0.07, to: f * 1.5 })); },
-    bonk() { if (!ok()) return; tone(150, 0.22, { gain: 0.45, to: 52 }); noise(0.1, { f: 420, q: 0.8, gain: 0.2 }); },
-    full() { if (!ok()) return; tone(330, 0.12, { type: 'triangle', gain: 0.16 }); tone(247, 0.18, { type: 'triangle', gain: 0.16, delay: 0.12 }); },
-    unwrap() { if (!ok()) return; for (let i = 0; i < 3; i++) noise(0.05, { f: 5200, type: 'highpass', gain: 0.07, delay: i * 0.05 }); tone(1040, 0.12, { gain: 0.1, delay: 0.12 }); tone(1560, 0.16, { gain: 0.09, delay: 0.19 }); },
-    turn() { if (!ok()) return; noise(0.04, { f: 2600, q: 3, gain: 0.07 }); noise(0.04, { f: 3200, q: 3, gain: 0.06, delay: 0.07 }); },
+    merge() { if (!ok()) return; tone(620, 0.08, { gain: 0.1, to: 880 }); tone(880, 0.14, { gain: 0.09, delay: 0.07, to: 1240 }); },
+    mix() { if (!ok()) return; [420, 560, 760].forEach((f, i) => tone(f, 0.14, { gain: 0.08, delay: i * 0.07, to: f * 1.3 })); },
+    bonk() { if (!ok()) return; tone(170, 0.2, { gain: 0.2, to: 80 }); noise(0.08, { f: 300, type: 'lowpass', q: 0.5, gain: 0.05 }); },
+    full() { if (!ok()) return; tone(330, 0.12, { type: 'triangle', gain: 0.11 }); tone(247, 0.18, { type: 'triangle', gain: 0.11, delay: 0.12 }); },
+    unwrap() { if (!ok()) return; for (let i = 0; i < 3; i++) noise(0.05, { f: 4200, q: 1, gain: 0.025, delay: i * 0.05 }); tone(1040, 0.12, { gain: 0.07, delay: 0.12 }); tone(1560, 0.16, { gain: 0.06, delay: 0.19 }); },
+    turn() { if (!ok()) return; noise(0.04, { f: 2200, q: 3, gain: 0.035 }); noise(0.04, { f: 2700, q: 3, gain: 0.03, delay: 0.07 }); },
     coin() {
       if (!ok()) return;
       const n = performance.now();
+      if (n - lastCoin < 60) return;          // coins arrive in bursts at the end of a level: one chime per 60 ms is plenty
       coinStep = n - lastCoin < 400 ? Math.min(coinStep + 1, 10) : 0;
       lastCoin = n;
-      const f = 1250 * Math.pow(1.05, coinStep);
-      tone(f, 0.09, { type: 'square', gain: 0.05 }); tone(f * 1.5, 0.16, { gain: 0.1, delay: 0.03 });
+      const f = 1250 * Math.pow(1.04, coinStep);
+      tone(f, 0.09, { type: 'triangle', gain: 0.04 }); tone(f * 1.5, 0.16, { gain: 0.06, delay: 0.03 });
     },
-    star(i) { if (!ok()) return; mallet(784 * Math.pow(2, (i * 4) / 12), 0.2, 0); noise(0.25, { f: 8000, type: 'highpass', gain: 0.04 }); },
+    star(i) { if (!ok()) return; mallet(784 * Math.pow(2, (i * 4) / 12), 0.14, 0); },
     hint() { if (!ok()) return; tone(988, 0.1, { gain: 0.1 }); tone(1319, 0.16, { gain: 0.1, delay: 0.08 }); },
-    banner() { if (!ok()) return; tone(196, 0.35, { type: 'triangle', gain: 0.16 }); tone(233, 0.45, { type: 'triangle', gain: 0.16, delay: 0.18 }); },
+    banner() { if (!ok()) return; tone(196, 0.35, { type: 'triangle', gain: 0.12 }); tone(233, 0.45, { type: 'triangle', gain: 0.12, delay: 0.18 }); },
     win() {
       if (!ok()) return;
-      [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => mallet(f, 0.2, i * 0.09));
-      [1318.5, 1568, 2093].forEach(f => tone(f, 0.9, { gain: 0.08, delay: 0.42, type: 'triangle' }));
-      noise(0.9, { f: 7500, type: 'highpass', gain: 0.045, delay: 0.42 });
+      [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => mallet(f, 0.15, i * 0.09));
+      [1318.5, 1568, 2093].forEach(f => tone(f, 0.9, { gain: 0.045, delay: 0.42, type: 'triangle' }));
     },
-    lose() { if (!ok()) return; [392, 330, 262, 196].forEach((f, i) => tone(f, 0.3, { type: 'triangle', gain: 0.14, delay: i * 0.15 })); }
+    lose() { if (!ok()) return; [392, 330, 262, 196].forEach((f, i) => tone(f, 0.3, { type: 'triangle', gain: 0.1, delay: i * 0.15 })); }
   };
 
   document.addEventListener('visibilitychange', () => A.pauseAll(document.hidden));

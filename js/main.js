@@ -11,7 +11,7 @@
     slot: { unlock: 6, grant: 2, pack: 1, price: 100 }
   };
   // scale: the most device pixels per CSS pixel the canvases may use; the frame meter below can lower it
-  const App = JT.App = { W: 0, H: 0, state: 'boot', cur: 0, scale: 2.5, COST: { heart: 80, slot: 100, pick: 120 }, PAGE_COINS: 150 };
+  const App = JT.App = { W: 0, H: 0, state: 'boot', cur: 0, scale: 2.5, COST: { slot: 100, pick: 120 }, PAGE_COINS: 150 };
   let world, wctx, fx, fctx, fpsEl, last = 0, bgCv = null, homeT = 0, fxDirty = false, fxShown = true;
 
   App.resize = function () {
@@ -156,7 +156,8 @@
   };
   App.onWin = function (res) {
     const idx = App.cur, L = JT.Levels.get(idx), key = L.pic.key, d = Save.data;
-    const stars = U.clamp(res.hearts, 1, 3), newPic = !d.album.includes(key);
+    // stars count blocked taps (there are no hearts): none = 3, one or two = 2, three or more = 1
+    const stars = res.misses === 0 ? 3 : res.misses <= 2 ? 2 : 1, newPic = !d.album.includes(key);
     if (newPic) d.album.push(key);
     d.stars[idx] = Math.max(d.stars[idx] || 0, stars);
     if (idx === d.level) d.level = idx + 1;
@@ -175,7 +176,7 @@
     FX.confetti(App.W / 2, App.H * 0.3, 40, -Math.PI / 2, Math.PI, 0.7);
   };
   App.onFail = function (reason) { UI.fail(reason); };
-  // continue after a fail: 'slot' | 'heart' | 'pick'
+  // continue after a fail: 'slot' | 'pick'
   App.continueWith = function (act, free) {
     const d = Save.data;
     if (!free) {
@@ -186,7 +187,6 @@
     UI.closeModal();
     G.resume();
     if (act === 'slot') G.addSlot();
-    else if (act === 'heart') G.addHeart();
     else { if (!free) { d.boosters.pick++; Save.save(); UI.setBoosters(); } G.setPick(true); }
   };
   App.addCoins = function (n) { Save.data.coins += n; Save.save(); UI.setCoins(Save.data.coins); };

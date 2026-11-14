@@ -46,20 +46,18 @@
   <!-- in-game HUD -->
   <section id="hud" class="screen hidden">
     <header id="topbar">
+      <!-- one menu for settings, replay and home: the pause popup holds all three -->
       <button class="rbtn" id="btnPause" aria-label="Menu"></button>
-      <div id="hearts" aria-label="Hearts"></div>
       <div id="levelPill"><b id="lvlText"></b><span id="lvlName"></span></div>
       <div class="pill coinPill"><i class="coinIco"></i><span class="coinVal">0</span></div>
     </header>
     <div id="toast"></div>
     <footer id="bottombar">
-      <button class="rbtn" id="btnRestart" aria-label="Restart"></button>
       <div class="boosters">
         <button class="booster" data-b="hint"><span class="bico"></span><span class="bcount"></span><span class="block"></span></button>
         <button class="booster" data-b="pick"><span class="bico"></span><span class="bcount"></span><span class="block"></span></button>
         <button class="booster" data-b="slot"><span class="bico"></span><span class="bcount"></span><span class="block"></span></button>
       </div>
-      <button class="rbtn" id="btnHome" aria-label="Home"></button>
     </footer>
   </section>
 

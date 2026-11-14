@@ -8,6 +8,10 @@
   const TAU = U.TAU;
   R.COL = k => C.PALETTE[k].hex;
   R.WRAP = '#cfc9dd';
+  // One outline family for every candy: the colour's own dark shade pulled halfway to the ink brown. Each object
+  // used to get its own shaded rim plus glossy streaks, which read as generated; a shared outline reads as drawn.
+  const rims = new Map();
+  const rimOf = R.rimOf = hex => { let v = rims.get(hex); if (!v) { v = U.mix(U.shade(hex, -0.42), INK, 0.5); rims.set(hex, v); } return v; };
 
   // ---------- scene ----------
   R.background = function (ctx, W, H) {
@@ -82,12 +86,12 @@
     cv = document.createElement('canvas'); cv.width = cv.height = px;
     const c = cv.getContext('2d'), hex = R.COL(key);
     const m = px * 0.035, s = px - m * 2, r = s * 0.27;
+    // a jelly cube: flat colour on a darker base, one soft light edge on top, no gloss pill
     U.rr(c, m, m, s, s, r); c.fillStyle = U.shade(hex, -0.28); c.fill();
-    U.rr(c, m, m, s, s * 0.9, r); c.fillStyle = hex; c.fill();
-    const g = c.createLinearGradient(0, m, 0, m + s * 0.9);
-    g.addColorStop(0, 'rgba(255,255,255,0.42)'); g.addColorStop(0.55, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(0,0,0,0.1)');
-    U.rr(c, m, m, s, s * 0.9, r); c.fillStyle = g; c.fill();
-    U.rr(c, m + s * 0.15, m + s * 0.11, s * 0.36, s * 0.15, s * 0.075); c.fillStyle = 'rgba(255,255,255,0.8)'; c.fill();
+    U.rr(c, m, m, s, s * 0.88, r); c.fillStyle = hex; c.fill();
+    const g = c.createLinearGradient(0, m, 0, m + s * 0.88);
+    g.addColorStop(0, 'rgba(255,255,255,0.24)'); g.addColorStop(0.35, 'rgba(255,255,255,0)');
+    U.rr(c, m, m, s, s * 0.88, r); c.fillStyle = g; c.fill();
     tiles.set(id, cv);
     return cv;
   };
@@ -101,11 +105,12 @@
       else R.socket(ctx, cx, cy, cellPx, R.COL(pic.cells[i]), false);
     }
   };
-  // an empty picture cell: a socket with a seed dot of its target colour
+  // an empty picture cell: a socket with a seed dot of its target colour (hex null: a closed ring, no dot)
   R.socket = function (ctx, x, y, s, hex, active) {
     const m = s * 0.06;
     U.rr(ctx, x + m, y + m, s - 2 * m, s - 2 * m, s * 0.24);
     ctx.fillStyle = active ? '#fffdf6' : '#dcc5a2'; ctx.fill();
+    if (!hex) return;
     const r = s * (active ? 0.27 : 0.2);
     ctx.beginPath(); ctx.arc(x + s / 2, y + s / 2, r, 0, TAU);
     ctx.fillStyle = active ? hex : U.mix(hex, '#dcc5a2', 0.18); ctx.fill();
@@ -128,21 +133,18 @@
       trace(0, 0); ctx.strokeStyle = 'rgba(255,214,60,' + o.glow + ')'; ctx.lineWidth = w * 1.3; ctx.stroke();
     }
     const rim = Math.max(1.5, w * 0.1);
-    trace(0, w * 0.2); ctx.strokeStyle = 'rgba(15,4,0,0.34)'; ctx.lineWidth = w; ctx.stroke();           // drop shadow
+    trace(0, w * 0.18); ctx.strokeStyle = 'rgba(15,4,0,0.28)'; ctx.lineWidth = w; ctx.stroke();          // drop shadow
     if (U.lum(hex) < 0.47) { trace(0, 0); ctx.strokeStyle = 'rgba(255,232,210,0.4)'; ctx.lineWidth = w + Math.max(2, w * 0.14); ctx.stroke(); }  // dark candy needs an edge on chocolate
-    trace(0, 0); ctx.strokeStyle = U.shade(hex, -0.36); ctx.lineWidth = w; ctx.stroke();                    // dark rim
-    trace(0, -rim * 0.55); ctx.strokeStyle = hex; ctx.lineWidth = w - rim * 2; ctx.stroke();                // body
+    trace(0, 0); ctx.strokeStyle = rimOf(hex); ctx.lineWidth = w; ctx.stroke();                             // outline
+    trace(0, -rim * 0.45); ctx.strokeStyle = hex; ctx.lineWidth = w - rim * 2; ctx.stroke();                // body
     if (o.wrap) {                                                                                           // foil stripes
       ctx.lineCap = 'butt'; ctx.setLineDash([w * 0.28, w * 0.34]);
-      trace(0, -rim * 0.55); ctx.strokeStyle = '#eeeaf7'; ctx.lineWidth = w - rim * 2; ctx.stroke();
+      trace(0, -rim * 0.45); ctx.strokeStyle = '#eeeaf7'; ctx.lineWidth = w - rim * 2; ctx.stroke();
       ctx.setLineDash([]); ctx.lineCap = 'round';
     }
-    ctx.globalAlpha = ga * 0.55;
-    trace(-w * 0.05, -w * 0.15); ctx.strokeStyle = U.shade(hex, 0.34); ctx.lineWidth = w * 0.36; ctx.stroke(); // light band
-    ctx.globalAlpha = ga * 0.85;
-    ctx.setLineDash([w * 0.3, w * 1.3]);
-    trace(-w * 0.07, -w * 0.23); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = w * 0.11; ctx.stroke();      // specular dashes
-    ctx.setLineDash([]); ctx.globalAlpha = ga;
+    ctx.globalAlpha = ga * 0.35;
+    trace(-w * 0.04, -w * 0.16); ctx.strokeStyle = U.shade(hex, 0.4); ctx.lineWidth = w * 0.28; ctx.stroke(); // one soft light band
+    ctx.globalAlpha = ga;
     if (o.flash > 0) { trace(0, 0); ctx.strokeStyle = 'rgba(255,70,90,' + o.flash + ')'; ctx.lineWidth = w * 1.02; ctx.stroke(); }
   };
 
@@ -150,9 +152,9 @@
   R.head = function (ctx, x, y, ang, r, o) {
     const hex = o.hex, rim = Math.max(1.5, r * 0.16);
     ctx.fillStyle = 'rgba(15,4,0,0.3)'; ctx.beginPath(); ctx.arc(x, y + r * 0.3, r, 0, TAU); ctx.fill();
-    ctx.fillStyle = U.shade(hex, -0.36); ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
-    ctx.fillStyle = hex; ctx.beginPath(); ctx.arc(x, y - rim * 0.5, r - rim, 0, TAU); ctx.fill();
-    ctx.fillStyle = U.rgba(U.shade(hex, 0.4), 0.75); ctx.beginPath(); ctx.ellipse(x - r * 0.22, y - r * 0.42, r * 0.42, r * 0.2, -0.5, 0, TAU); ctx.fill();
+    ctx.fillStyle = rimOf(hex); ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
+    ctx.fillStyle = hex; ctx.beginPath(); ctx.arc(x, y - rim * 0.4, r - rim, 0, TAU); ctx.fill();
+    ctx.fillStyle = U.rgba(U.shade(hex, 0.4), 0.4); ctx.beginPath(); ctx.ellipse(x - r * 0.24, y - r * 0.44, r * 0.32, r * 0.15, -0.5, 0, TAU); ctx.fill();
     if (o.flash > 0) { ctx.fillStyle = 'rgba(255,70,90,' + o.flash + ')'; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); }
     if (o.wrap) return;
     const fx = Math.cos(ang), fy = Math.sin(ang), lx = -fy, ly = fx;
@@ -203,11 +205,13 @@
     ctx.save(); ctx.translate(x, y);
     if (!o.noShadow) { ctx.fillStyle = 'rgba(120,60,30,0.22)'; ctx.beginPath(); ctx.ellipse(0, r * 0.9, r * 0.8, r * 0.2, 0, 0, TAU); ctx.fill(); }
     ctx.translate(0, r); ctx.scale(o.sx || 1, o.sy || 1); ctx.translate(0, -r);   // squash from the base
-    ctx.fillStyle = U.shade(hex, -0.36); ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill();
-    const g = ctx.createRadialGradient(-r * 0.3, -r * 0.45, r * 0.05, 0, 0, r);
-    g.addColorStop(0, U.shade(hex, 0.42)); g.addColorStop(0.5, hex); g.addColorStop(1, U.shade(hex, -0.14));
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, -rim * 0.5, r - rim, 0, TAU); ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.beginPath(); ctx.ellipse(-r * 0.4, -r * 0.52, r * 0.24, r * 0.11, -0.65, 0, TAU); ctx.fill();
+    // flat jelly: outline, body colour, a darker belly, one small highlight (no radial gloss)
+    ctx.fillStyle = rimOf(hex); ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill();
+    ctx.fillStyle = hex; ctx.beginPath(); ctx.arc(0, -rim * 0.5, r - rim, 0, TAU); ctx.fill();
+    ctx.save(); ctx.beginPath(); ctx.arc(0, -rim * 0.5, r - rim, 0, TAU); ctx.clip();
+    ctx.fillStyle = U.rgba(U.shade(hex, -0.3), 0.35); ctx.beginPath(); ctx.ellipse(0, r * 0.62, r * 1.05, r * 0.5, 0, 0, TAU); ctx.fill();
+    ctx.restore();
+    ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.beginPath(); ctx.ellipse(-r * 0.38, -r * 0.5, r * 0.2, r * 0.09, -0.65, 0, TAU); ctx.fill();
     const emo = o.emo || 'happy';
     if (emo !== 'none') {
       const ey = -r * 0.14, ex = r * 0.34, er = r * 0.23;

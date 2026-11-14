@@ -6,11 +6,12 @@
   const JT = window.JT, U = JT.U, C = JT.Core, R = JT.Render, A = JT.Audio, FX = JT.FX, E = U.ease;
   const T = (k, v) => JT.I18n.t(k, v);
   const COL = R.COL;
-  const TICK = 70, SHOT = 210, FLY = 330;
+  // TICK: one cell per jelly per tick. 120 ms keeps the squirting readable (it was 70 ms: a jar emptied before you could see it)
+  const TICK = 120, SHOT = 240, FLY = 330;
   const G = JT.Game = { paused: false };
 
   let L = null, S = null, idx = 0, lay = null, layVer = 0;
-  let clock = 0, tickAcc = 0, status = 'idle', hearts = 3;
+  let clock = 0, tickAcc = 0, status = 'idle', misses = 0;
   let W = [], exits = [], balls = [], shots = [], sched = [], vis = [];
   let paintedAt = null, visLeft = null, visRing = 0, ringCells = null, ringColors = null;
   let ringFlash = -1e9, picPulse = -1e9, rackAlarm = -1e9, winT0 = -1;
@@ -122,7 +123,7 @@
   // ---------- level setup ----------
   G.start = function (i) {
     idx = i; L = JT.Levels.get(i); S = C.newState(L);
-    clock = 0; tickAcc = 0; status = 'play'; hearts = 3; G.paused = false;
+    clock = 0; tickAcc = 0; status = 'play'; misses = 0; G.paused = false;
     exits = []; balls = []; shots = []; sched = []; vis = new Array(S.slots.length).fill(null);
     paintedAt = new Float64Array(L.pic.total).fill(Infinity);
     visLeft = L.pic.ringSize.slice(); visRing = 0;
@@ -147,7 +148,6 @@
     tut = idx === 0 && !JT.Save.data.tips.tut ? { step: 0 } : null;
     G.layout();
     checkReveals(true);
-    JT.UI.setHearts(hearts);
   };
 
   G.layout = function () {
@@ -155,31 +155,35 @@
     const Wd = JT.App.W, H = JT.App.H, u = Wd / 100;
     const top = JT.UI.playTop(), bot = JT.UI.playBottom(), A0 = bot - top;
     const slots = S.slots.length, pic = L.pic;
-    const pad = 3 * u, gap = 2.6 * u, fp = 2.2 * u, trayPad = 2.4 * u;
-    const sw = Math.min(15 * u, (Wd - 2 * pad - 4 * u) / slots);
-    const rackH = U.clamp(sw * 1.16, 12 * u, 17 * u), rackW = sw * slots + 4 * u;
-    const sideW = U.clamp(Wd * 0.29, 25 * u, 32 * u);
-    let pc = Math.floor(Math.min((Wd - 2 * pad - sideW - gap - 2 * fp) / pic.w, (A0 * 0.36 - 2 * fp) / pic.h));
-    pc = U.clamp(pc, 8, 30);
+    const pad = 3 * u, gap = 2.4 * u, fp = 2 * u, trayPad = 2.2 * u;
+    // a slim rack: it only has to show the jellies and their counts
+    const sw = Math.min(11.5 * u, (Wd - 2 * pad - 4 * u) / slots);
+    const rackH = U.clamp(sw * 1.12, 10 * u, 13 * u), rackW = sw * slots + 4 * u;
+    // the colour counts of the open ring sit in a strip right under the picture, inside the same card
+    const stripH = 9 * u;
+    const cellW = (Wd - 2 * pad - 2 * trayPad) / L.cols;
+    // The picture starts at the full column width and gives up size while the worm box is too small to tap,
+    // but never below 1.3x the box's height: on short, wide columns (desktop) the two share the height instead.
+    let pc = U.clamp(Math.floor((Wd - 2 * pad - 2 * fp) / pic.w), 8, 30);
     let cell, picPH;
     for (;;) {
-      picPH = pc * pic.h + 2 * fp;
-      const availH = A0 - picPH - rackH - 2 * gap - 6 * u;
-      cell = Math.min((Wd - 2 * pad - 2 * trayPad) / L.cols, (availH - 2 * trayPad) / L.rows, 15 * u);
-      if (cell >= 7.4 * u || pc <= 9) break;
+      picPH = pc * pic.h + 2 * fp + stripH;
+      const availH = A0 - picPH - rackH - 2 * gap - 4 * u;
+      cell = Math.min(cellW, (availH - 2 * trayPad) / L.rows, 13 * u);
+      if (cell >= 10 * u || pc * pic.h <= 1.3 * cell * L.rows || pc <= 9) break;
       pc--;
     }
     cell = Math.max(12, Math.floor(cell));
     const trayW = cell * L.cols + 2 * trayPad, trayH = cell * L.rows + 2 * trayPad;
     const total = picPH + rackH + trayH + 2 * gap + 4 * u;
     let y = top + Math.max(0, (A0 - total) * 0.4);
-    const ppW = pc * pic.w + 2 * fp, ppX = (Wd - (ppW + gap + sideW)) / 2;
+    const ppW = pc * pic.w + 2 * fp, ppX = (Wd - ppW) / 2;
     lay = { W: Wd, H: H, u: u, pc: pc, ppX: ppX, ppY: y, ppW: ppW, ppH: picPH, picX: ppX + fp, picY: y + fp, picW: pc * pic.w, picH: pc * pic.h,
-      sideX: ppX + ppW + gap, sideY: y, sideW: sideW, sideH: picPH };
-    y += picPH + gap + 1.5 * u;
+      stripX: ppX + fp, stripY: y + fp + pc * pic.h, stripW: pc * pic.w, stripH: stripH };
+    y += picPH + gap + 2 * u;
     lay.rackX = (Wd - rackW) / 2; lay.rackY = y; lay.rackW = rackW; lay.rackH = rackH; lay.sw = sw; lay.rackPad = 2 * u;
-    lay.slotR = Math.min(sw * 0.4, rackH * 0.35);
-    y += rackH + gap + 1.5 * u;
+    lay.slotR = Math.min(sw * 0.4, rackH * 0.36);
+    y += rackH + gap + 2 * u;
     lay.trayX = (Wd - trayW) / 2; lay.trayY = y; lay.trayW = trayW; lay.trayH = trayH; lay.trayPad = trayPad; lay.cell = cell;
     lay.bx = lay.trayX + trayPad; lay.by = y + trayPad; lay.lip = (trayPad + 2.4 * u) / cell;
     layVer++;
@@ -195,7 +199,6 @@
     R.background(c, lay.W, lay.H);
     R.panel(c, lay.ppX, lay.ppY, lay.ppW, lay.ppH, 4.6 * u);
     U.rr(c, lay.picX - 0.9 * u, lay.picY - 0.9 * u, lay.picW + 1.8 * u, lay.picH + 1.8 * u, 2.6 * u); c.fillStyle = '#e9d3b1'; c.fill();
-    R.panel(c, lay.sideX, lay.sideY, lay.sideW, lay.sideH, 4.6 * u);
     R.panel(c, lay.rackX, lay.rackY, lay.rackW, lay.rackH, lay.rackH / 2);
     for (let i = 0; i < S.slots.length; i++) {
       const p = slotPos(i), r = lay.slotR * 1.08;
@@ -210,7 +213,13 @@
     unpCv.width = Math.round(lay.picW * dpr); unpCv.height = Math.round(lay.picH * dpr);
     const c = unpCv.getContext('2d');
     c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, lay.picW, lay.picH);
-    for (let i = 0; i < pic.total; i++) R.socket(c, (i % pic.w) * pc, ((i / pic.w) | 0) * pc, pc, COL(pic.cells[i]), pic.layer[i] === visRing);
+    // only the open ring shows its colour seeds, the next ring a faint preview; deeper rings stay blank until they open
+    for (let i = 0; i < pic.total; i++) {
+      const ly = pic.layer[i], x = (i % pic.w) * pc, y = ((i / pic.w) | 0) * pc;
+      if (ly === visRing) R.socket(c, x, y, pc, COL(pic.cells[i]), true);
+      else if (ly === visRing + 1) R.socket(c, x, y, pc, COL(pic.cells[i]), false);
+      else R.socket(c, x, y, pc, null, false);
+    }
     unpRing = visRing; unpVer = layVer;
   }
 
@@ -316,12 +325,9 @@
       shakeIt(lay.u * 1.6, 260); A.bonk(); A.buzz(40);
     });
     after(dur, () => { W[id].bump = null; });
-    hearts--;
-    JT.UI.setHearts(hearts, true);
-    const hd = L.hoses[id].cells[L.hoses[id].cells.length - 1];
-    FX.text('-1', sx(hd[0]), sy(hd[1]) - lay.cell * 0.4, { size: lay.u * 6, fill: '#ff5468', stroke: '#fff', delay: dur * 0.42, rise: lay.u * 7 });
-    if (hearts <= 0) lose('hearts');
-    else tip('tipBlocked');
+    // no hearts: a blocked tap never ends the level, it only costs stars (see App.onWin)
+    misses++;
+    tip('tipBlocked');
   }
 
   function doPull(id, mode) {
@@ -343,7 +349,11 @@
     noteRotations(before);
     checkReveals(false);
     A.whoosh(); A.buzz(8);
-    if (tut && tut.step === 0) { tut.step = 1; JT.UI.toast(T('tut2'), 4200); }
+    if (tut && tut.step === 0) {
+      tut.step = 1; JT.UI.toast(T('tut2'), 3400);
+      // the ring rule is the one thing new players miss: say it while the first jelly is squirting, not after the ring is done
+      after(3600, () => { if (tut && tut.step === 1) { tut.step = 2; JT.UI.toast(T('tut3'), 5200); } });
+    }
   }
 
   // ---------- rack visuals ----------
@@ -421,9 +431,9 @@
   function lose(reason) {
     if (status !== 'play') return;
     status = 'lost'; hintId = handId = -1;
-    if (reason !== 'hearts') { rackAlarm = clock; shakeIt(lay.u, 300); }
-    after(reason === 'hearts' ? 700 : 500, () => { A.lose(); A.buzz([30, 60, 30]); });
-    after(reason === 'hearts' ? 1000 : 800, () => JT.App.onFail(reason));
+    rackAlarm = clock; shakeIt(lay.u, 300);
+    after(500, () => { A.lose(); A.buzz([30, 60, 30]); });
+    after(800, () => JT.App.onFail(reason));
   }
 
   function onRingDone(r) {
@@ -435,7 +445,7 @@
     for (const c of ringCells[r]) {
       if (Math.random() < 0.3) { const p = picCell(c); FX.sparkles(FX.world, p.x, p.y, 1, lay.pc * 0.3, '#ffffff'); }
     }
-    if (tut && tut.step < 2) { tut.step = 2; JT.UI.toast(T('tut3'), 4500); }
+    if (tut && tut.step < 3) { tut.step = 3; JT.UI.toast(T('tut4'), 3800); }
   }
   function beginWin() {
     const cx = lay.picX + lay.picW / 2, cy = lay.picY + lay.picH / 2;
@@ -463,7 +473,7 @@
       after(t, () => popBlob(i, true));
       t += 90;
     }
-    after(t + 750, () => JT.App.onWin({ hearts: hearts, bonus: bonusCoins }));
+    after(t + 750, () => JT.App.onWin({ misses: misses, bonus: bonusCoins }));
     if (tut) { JT.Save.data.tips.tut = 1; JT.Save.save(); tut = null; }
   }
 
@@ -566,7 +576,6 @@
     A.merge();
     return true;
   };
-  G.addHeart = function () { hearts = Math.max(1, hearts + 1); JT.UI.setHearts(hearts); };
   G.resume = function () { if (status === 'lost') { status = 'play'; tickAcc = 0; lastInput = clock; } };
   G.status = () => status;
   G.level = () => idx;
@@ -617,49 +626,34 @@
     ctx.restore();
   }
 
-  function drawSide(ctx) {
-    const x = lay.sideX, y = lay.sideY, w = lay.sideW, h = lay.sideH, u = lay.u, pic = L.pic;
-    const ring = Math.min(visRing, pic.rings - 1), cx = x + w / 2;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#b3855c'; ctx.font = '900 ' + (3.1 * u) + 'px Nunito, system-ui, sans-serif';
-    ctx.fillText(T('ring').toUpperCase() + ' ' + Math.min(visRing + 1, pic.rings) + '/' + pic.rings, cx, y + 4.6 * u);
-    // ring pips
-    const pw = Math.min(3.6 * u, (w - 5 * u) / pic.rings);
-    for (let r = 0; r < pic.rings; r++) {
-      const px = cx + (r - (pic.rings - 1) / 2) * pw, py = y + 8.6 * u;
-      ctx.beginPath(); ctx.arc(px, py, r === visRing ? pw * 0.4 : pw * 0.28, 0, U.TAU);
-      ctx.fillStyle = r < visRing ? '#3fdc86' : r === visRing ? '#ff6aa6' : '#e3caa6'; ctx.fill();
-    }
-    // colours the active ring still needs
+  // One row under the picture: how many cells of each colour the glowing ring still needs. A finished colour
+  // keeps its place, dimmed, with a tick, so the row does not jump around while the ring fills.
+  function drawStrip(ctx) {
+    const u = lay.u, pic = L.pic, ring = Math.min(visRing, pic.rings - 1);
     const list = ringColors[ring], left = {};
     for (const c of ringCells[ring]) if (paintedAt[c] > clock) left[pic.cells[c]] = (left[pic.cells[c]] || 0) + 1;
-    const cols = list.length > 4 ? 2 : 1, rows = Math.ceil(list.length / cols);
-    const nextH = ring + 1 < pic.rings ? 9.5 * u : 2 * u;
-    const top = y + 12 * u, areaH = h - 12 * u - nextH;
-    const rowH = Math.min(cols === 1 ? 9.5 * u : 7 * u, areaH / rows), cw = (w - 3 * u) / cols, ts = Math.min(rowH * 0.72, cols === 1 ? 6.4 * u : 5 * u);
-    const y0 = top + (areaH - rowH * rows) / 2;
-    ctx.font = '800 ' + (ts * 0.9) + 'px "Baloo 2", system-ui, sans-serif';
+    const cy = lay.stripY + lay.stripH * 0.55;
+    let ts = Math.min(5.4 * u, lay.stripH * 0.6), gapX = 3.2 * u, widths, total;
+    const measure = () => {
+      ctx.font = '800 ' + (ts * 0.92) + 'px "Baloo 2", system-ui, sans-serif';
+      widths = list.map(it => { const n = left[it.c] || 0; return ts + ts * 0.22 + (n ? ctx.measureText('×' + n).width : ts * 0.8); });
+      total = widths.reduce((a, b) => a + b, 0) + gapX * (list.length - 1);
+    };
+    measure();
+    if (total > lay.stripW) { const k = lay.stripW / total; ts *= k; gapX *= k; measure(); }
+    let x = lay.stripX + (lay.stripW - total) / 2;
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
     for (let k = 0; k < list.length; k++) {
-      const col = k % cols, row = (k / cols) | 0, n = left[list[k].c] || 0;
-      const mx = x + 1.5 * u + col * cw + cw / 2, my = y0 + row * rowH + rowH / 2;
-      const tx = mx - (ts * 0.5 + ts * 0.9);
+      const n = left[list[k].c] || 0, tx = x + ts + ts * 0.22;
       ctx.globalAlpha = n ? 1 : 0.32;
-      ctx.drawImage(R.tile(list[k].c, ts), tx, my - ts / 2, ts, ts);
-      ctx.textAlign = 'left';
-      if (n) { ctx.fillStyle = R.INK; ctx.fillText('×' + n, tx + ts * 1.2, my + ts * 0.07); }
+      ctx.drawImage(R.tile(list[k].c, ts), x, cy - ts / 2, ts, ts);
+      ctx.globalAlpha = 1;
+      if (n) { ctx.fillStyle = R.INK; ctx.fillText('×' + n, tx, cy + ts * 0.07); }
       else {
-        ctx.strokeStyle = '#1ea65a'; ctx.lineWidth = ts * 0.16; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.globalAlpha = 1;
-        ctx.beginPath(); ctx.moveTo(tx + ts * 1.3, my); ctx.lineTo(tx + ts * 1.55, my + ts * 0.25); ctx.lineTo(tx + ts * 2.0, my - ts * 0.28); ctx.stroke();
+        ctx.strokeStyle = '#1ea65a'; ctx.lineWidth = ts * 0.16; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        ctx.beginPath(); ctx.moveTo(tx, cy); ctx.lineTo(tx + ts * 0.25, cy + ts * 0.25); ctx.lineTo(tx + ts * 0.7, cy - ts * 0.28); ctx.stroke();
       }
-    }
-    ctx.globalAlpha = 1;
-    if (ring + 1 < pic.rings) {
-      const ny = y + h - 8.2 * u;
-      ctx.strokeStyle = '#ecd7b6'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x + 3 * u, ny - 0.6 * u); ctx.lineTo(x + w - 3 * u, ny - 0.6 * u); ctx.stroke();
-      ctx.textAlign = 'center'; ctx.fillStyle = '#c29f79'; ctx.font = '900 ' + (2.5 * u) + 'px Nunito, system-ui, sans-serif';
-      ctx.fillText(T('nextRing').toUpperCase(), cx, ny + 1.5 * u);
-      const nl = ringColors[ring + 1], ds = Math.min(3.4 * u, (w - 4 * u) / nl.length);
-      for (let k = 0; k < nl.length; k++) ctx.drawImage(R.tile(nl[k].c, ds * 0.86), cx + (k - (nl.length - 1) / 2) * ds - ds * 0.43, ny + 3.6 * u, ds * 0.86, ds * 0.86);
+      x += widths[k] + gapX;
     }
   }
 
@@ -870,7 +864,7 @@
     }
     ctx.save(); ctx.translate(shx, shy);
     ctx.drawImage(staticCv, 0, 0, lay.W, lay.H);
-    drawPicture(ctx); drawSide(ctx); drawRack(ctx); drawWorms(ctx); drawExits(ctx); drawBalls(ctx); drawShots(ctx);
+    drawPicture(ctx); drawStrip(ctx); drawRack(ctx); drawWorms(ctx); drawExits(ctx); drawBalls(ctx); drawShots(ctx);
     FX.world.draw(ctx);
     drawHand(ctx);
     ctx.restore();
@@ -879,7 +873,7 @@
   // ---------- debug / automated playtest hooks ----------
   G.debug = {
     state() {
-      return { level: idx, status: status, hearts: hearts, clock: Math.round(clock), left: S.left, ring: S.ring, visRing: visRing,
+      return { level: idx, status: status, misses: misses, clock: Math.round(clock), left: S.left, ring: S.ring, visRing: visRing,
         slots: S.slots.map(s => (s ? s.color + s.paint : '-')).join(' '), vis: vis.map(v => (v ? v.c + v.paint : '-')).join(' '),
         options: C.options(L, S), worms: L.hoses.length, removed: Array.from(S.removed).reduce((a, b) => a + b, 0), exits: exits.length, balls: balls.length, shots: shots.length };
     },

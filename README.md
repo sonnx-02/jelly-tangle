@@ -34,12 +34,14 @@ Repo là một trang tĩnh nên cũng đẩy nguyên thư mục lên được Ne
 
 ## Luật chơi
 
-1. Chạm một bé sâu có **lối ra trống** phía trước mặt. Lao vào vật cản thì mất 1 tim (3 tim mỗi màn).
+1. Chạm một bé sâu có **lối ra trống** phía trước mặt. Chạm nhầm bé bị chặn không làm thua, chỉ bớt sao: không chạm nhầm lần nào được 3 sao, 1–2 lần được 2 sao, từ 3 lần được 1 sao.
 2. Sâu cuộn thành viên jelly, nhảy vào **ô trống đầu tiên** trên khay (ô có mũi tên) rồi tự phun màu lên tranh.
-3. Tranh nhận màu theo **từng vòng từ ngoài vào**. Bảng bên phải tranh cho biết vòng đang mở cần những màu nào, bao nhiêu ô. Viên jelly chưa tới lượt sẽ ngủ gật trên khay.
+3. Tranh nhận màu theo **từng vòng từ ngoài vào**. Dải màu ngay dưới tranh cho biết vòng đang mở còn cần bao nhiêu ô mỗi màu; các vòng bên trong để trống cho tới khi mở. Viên jelly chưa tới lượt sẽ ngủ gật trên khay.
 4. Số trên sâu là lượng màu. Hết màu thì viên jelly nổ và trả lại ô khay.
 5. Hai viên **cùng màu đứng cạnh nhau** gộp làm một. Màu đã đủ thì được đổi thành xu.
 6. Khay đầy mà không viên nào phun được là thua.
+
+Hộp sâu nằm ngang: 8×6 ô (một số màn 7×6, màn 1 là 6×5).
 
 Cơ chế mở dần: sâu nằm đè (màn 9), kẹo bọc giấy (màn 11), sâu chóng mặt (màn 13), pha màu (màn 15).
 Trợ giúp mở dần: Gợi ý (màn 3), Kẹp gắp (màn 5), Thêm ô (màn 7).

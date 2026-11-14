@@ -76,26 +76,26 @@
   const BANDS = { easy: [0, 0.25], normal: [0.25, 0.55], hard: [0.55, 0.85] };
   const MECH = ['cross', 'mystery', 'rotate', 'mix'];
 
-  const BASE = { slots: 5, density: 0.82, lmin: 2, lmax: 5, slack: 0.1, cols: 6, rows: 8 };
+  const BASE = { slots: 5, density: 0.82, lmin: 2, lmax: 5, slack: 0.1, cols: 8, rows: 6 };   // landscape box: wider than tall, so the picture gets the height
   // one entry per album picture, in ALBUM_ORDER
   const LEVELS = [
     // page 1 is the onboarding page: rack of 6
-    { band: 'easy', cols: 5, rows: 6, density: 0.8, lmax: 4, slack: 0.12, slots: 6 },
-    { band: 'easy', rows: 7, slots: 6 },
-    { band: 'normal', rows: 7, slots: 6 },
-    { band: 'normal', rows: 7, slots: 6 },
+    { band: 'easy', cols: 6, rows: 5, density: 0.8, lmax: 4, slack: 0.12, slots: 6 },
+    { band: 'easy', cols: 7, slots: 6 },
+    { band: 'normal', cols: 7, slots: 6 },
+    { band: 'normal', cols: 7, slots: 6 },
     { band: 'hard', slots: 6 },
-    { band: 'normal', rows: 7, slots: 6 },
-    { band: 'normal', rows: 7 },
-    { band: 'hard', rows: 7 },
+    { band: 'normal', cols: 7, slots: 6 },
+    { band: 'normal', cols: 7 },
+    { band: 'hard', cols: 7 },
     // level 15+ mechanics (compressed into levels 9-16 for the prototype)
-    { band: 'normal', rows: 7, cross: 0.6, intro: 'cross' },
+    { band: 'normal', cols: 7, cross: 0.6, intro: 'cross' },
     { band: 'hard', cross: 0.8 },
-    { band: 'normal', rows: 7, mystery: 0.4, intro: 'mystery' },
+    { band: 'normal', cols: 7, mystery: 0.4, intro: 'mystery' },
     { band: 'hard', mystery: 0.35, cross: 0.5 },
-    { band: 'normal', rows: 7, rotate: 2, intro: 'rotate' },
+    { band: 'normal', cols: 7, rotate: 2, intro: 'rotate' },
     { band: 'hard', rotate: 3, cross: 0.5 },
-    { band: 'hard', rows: 7, mix: true, slack: 0.7, intro: 'mix' },
+    { band: 'hard', cols: 7, mix: true, slack: 0.7, intro: 'mix' },
     { band: 'hard', mix: true, slack: 0.4 },
     // levels 17-30 combine the mechanics
     { band: 'normal', cross: 0.5 },
@@ -111,7 +111,7 @@
     { band: 'normal', mystery: 0.35 },
     { band: 'hard', cross: 0.5, rotate: 2 },
     { band: 'normal', mystery: 0.3, cross: 0.4 },
-    { band: 'hard', rows: 7, mix: true, slack: 0.5 }
+    { band: 'hard', cols: 7, mix: true, slack: 0.5 }
   ].map((l, i) => Object.assign({}, BASE, { pic: ALBUM_ORDER[i] }, l));
   const MIX_PICS = new Set(['candy', 'cake', 'violet']);
 
@@ -125,7 +125,7 @@
     if (roll === 0) cfg.cross = 0.4;
     if (roll === 1) cfg.mystery = 0.3;
     if (roll === 2) cfg.rotate = 2;
-    if (MIX_PICS.has(pic)) { cfg.mix = true; cfg.slack = 0.5; cfg.band = 'hard'; cfg.rows = 7; }
+    if (MIX_PICS.has(pic)) { cfg.mix = true; cfg.slack = 0.5; cfg.band = 'hard'; cfg.cols = 7; }
     return cfg;
   }
   function mechanicsOf(cfg) {
