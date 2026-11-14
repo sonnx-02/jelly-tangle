@@ -2,6 +2,8 @@
 
 Puzzle game cho mobile web (GameJam 2026). Gỡ những bé sâu kẹo dẻo ra khỏi hộp sô-cô-la, cho chúng nhảy lên khay và phun màu lấp đầy bức tranh jelly.
 
+**Chơi ngay:** https://sonnx-02.github.io/jelly-tangle/
+
 Đây là bản làm lại hoàn toàn về hình ảnh và cảm giác chơi của prototype **Hose Out**, giữ nguyên bộ luật gốc. Tên "Jelly Tangle" là tên tạm, đổi ở `index.html`, `manifest.webmanifest` và logo trong `js/ui.js`.
 
 ## Chạy game
@@ -22,7 +24,13 @@ Mở thẳng `index.html` bằng trình duyệt cũng chạy được.
 
 ### Đưa lên web
 
-Repo là một trang tĩnh, đẩy nguyên thư mục lên GitHub Pages, Netlify, Cloudflare Pages hay itch.io (HTML5) là chơi được. Với GitHub Pages: Settings → Pages → Deploy from a branch → `main` / root.
+Bản đang chạy nằm trên GitHub Pages của repo này (Settings → Pages → Deploy from a branch → `main` / root). Mỗi lần đẩy lên `main`, GitHub tự build lại sau khoảng một phút:
+
+```bash
+git push
+```
+
+Repo là một trang tĩnh nên cũng đẩy nguyên thư mục lên được Netlify, Cloudflare Pages hay itch.io (HTML5).
 
 ## Luật chơi
 
