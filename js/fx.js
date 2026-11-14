@@ -76,8 +76,8 @@
         life: U.rand(400, 800), size: U.rand(3, 7), color: color || '#ffffff', shrink: true, vr: U.rand(-0.004, 0.004), delay: U.rand(0, 160) });
     }
   };
-  const CONFETTI = ['#ff4a5c', '#ff9a2e', '#ffd42e', '#2fcf6b', '#3184ff', '#a45cf0', '#ff72b6', '#66d3ff'];
   FX.confetti = function (x, y, n, angle, spread, power) {
+    const CONFETTI = ['R', 'O', 'Y', 'G', 'B', 'P', 'K', 'S'].map(k => JT.Core.PALETTE[k].hex);   // the game's own candy colours
     for (let i = 0; i < n; i++) {
       const a = angle + U.rand(-spread, spread), v = power * U.rand(0.45, 1);
       FX.top.add({ shape: 'rect', x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, g: 0.0012, drag: 0.972,

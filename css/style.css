@@ -177,7 +177,8 @@ canvas#fx { pointer-events: none; z-index: 40; }
 /* before any booster unlocks the bottom bar is empty: the toast sits in it, wide enough for two lines, clear of the worm box */
 #toast.low { bottom: calc(var(--sb) + var(--u) * 2.4); max-width: calc(var(--u) * 94); padding-left: calc(var(--u) * 3.2); padding-right: calc(var(--u) * 3.2); }
 
-#banner { position: absolute; left: 0; right: 0; top: 40%; z-index: 30; display: grid; place-items: center; pointer-events: none; opacity: 0; }
+/* under the popups (z 20): a quick loss on a hard level must not show "Hard level!" across the fail card */
+#banner { position: absolute; left: 0; right: 0; top: 40%; z-index: 19; display: grid; place-items: center; pointer-events: none; opacity: 0; }
 #banner span {
   display: block; padding: calc(var(--u) * 3.2) calc(var(--u) * 12) calc(var(--u) * 2); width: 120%; text-align: center; color: #fff; font: 800 calc(var(--u) * 12) var(--display); line-height: 1;
   background: linear-gradient(#ff7f93, #e8375b); -webkit-text-stroke: calc(var(--u) * 1.6) #8f1232; paint-order: stroke fill;

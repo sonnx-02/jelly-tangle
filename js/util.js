@@ -54,6 +54,10 @@
     return v;
   };
   U.lum = function (hex) { const A = parse(hex); return (A[0] * 0.3 + A[1] * 0.59 + A[2] * 0.11) / 255; };
+  // WCAG 2 relative luminance and contrast ratio (1..21)
+  const lin = c => { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+  U.relLum = function (hex) { const A = parse(hex); return 0.2126 * lin(A[0]) + 0.7152 * lin(A[1]) + 0.0722 * lin(A[2]); };
+  U.contrast = function (a, b) { const x = U.relLum(a), y = U.relLum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
   U.rgba = function (hex, a) { const A = parse(hex); return 'rgba(' + A[0] + ',' + A[1] + ',' + A[2] + ',' + a + ')'; };
 
   // rounded rectangle path (begins a new path)
@@ -81,7 +85,7 @@
       claimed: [],              // album pages whose reward was paid
       seenIntro: [],            // mechanic intros already shown
       tips: {},                 // one-time tips already shown
-      settings: { sfx: true, music: true, haptic: true, lang: 'vi', fps: false }
+      settings: { sfx: true, music: true, haptic: true, lang: 'vi', fps: false, symbols: false }
     };
   }
   const Save = JT.Save = {

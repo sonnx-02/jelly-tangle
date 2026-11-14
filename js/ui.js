@@ -24,7 +24,8 @@
     music: svg('<path d="M9 17.5V5.6l10-2.2v11.8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="6.4" cy="17.6" rx="3" ry="2.5" fill="currentColor"/><ellipse cx="16.4" cy="15.4" rx="3" ry="2.5" fill="currentColor"/>'),
     haptic: svg('<rect x="7.4" y="2.6" width="9.2" height="18.8" rx="2.6" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M3.4 8.6v6.8M20.6 8.6v6.8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>'),
     fps: svg('<path d="M4.2 17.6a8.6 8.6 0 1 1 15.6 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M12 14.4l4.2-5.2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="12" cy="14.6" r="2" fill="currentColor"/>'),
-    lang: svg('<circle cx="12" cy="12" r="8.6" fill="none" stroke="currentColor" stroke-width="2.3"/><path d="M3.6 12h16.8M12 3.4c-5 5.6-5 11.6 0 17.2M12 3.4c5 5.6 5 11.6 0 17.2" fill="none" stroke="currentColor" stroke-width="2"/>')
+    lang: svg('<circle cx="12" cy="12" r="8.6" fill="none" stroke="currentColor" stroke-width="2.3"/><path d="M3.6 12h16.8M12 3.4c-5 5.6-5 11.6 0 17.2M12 3.4c5 5.6 5 11.6 0 17.2" fill="none" stroke="currentColor" stroke-width="2"/>'),
+    symbols: svg('<circle cx="7" cy="7.4" r="4"/><path d="M17 3.2l4.4 7.8h-8.8z"/><rect x="3.2" y="13.6" width="7.6" height="7.6" rx="1.4"/><path d="M17 13l1.4 2.9 3.2.5-2.3 2.2.6 3.2-2.9-1.5-2.9 1.5.6-3.2-2.3-2.2 3.2-.5z"/>', 'fill="currentColor"')
   };
   UI.ICON = ICON;
   const BCOL = { hint: '--a:#ffe07a;--b:#ffbe2e;--l:#d68f0c', pick: '--a:#ff9cc5;--b:#ff5c9d;--l:#d83e80', slot: '--a:#8fd8ff;--b:#45a5f5;--l:#2b7fd6' };
@@ -68,7 +69,7 @@
     rb.className = 'ribbon' + (cfg.band === 'hard' ? ' red' : '');
     $('hPicName').textContent = JT.I18n.picName(pic);
     $('hAlbumN').textContent = d.album.length + '/' + C.ALBUM_ORDER.length;
-    drawPic($('hPic'), pic, false);
+    drawPic($('hPic'), pic, 'ghost');   // show the picture you are about to make, faded, not a grid of dots
   };
   function drawPic(cv, pic, painted) {
     const ctx = cv.getContext('2d'), s = cv.width / pic.w;
@@ -178,6 +179,16 @@
       if (i < d.stars) setTimeout(() => { s.classList.add('on'); A.star(i); A.buzz(12); }, 520 + i * 300);
       else s.classList.add('dim');
     });
+    // the reward counts up once the stars have landed
+    const rb = card.querySelector('.rewardRow b'), t0 = performance.now() + 520 + d.stars * 300;
+    rb.textContent = '+0';
+    const count = () => {
+      const p = U.clamp((performance.now() - t0) / 650, 0, 1);
+      rb.textContent = '+' + Math.round(d.coins * U.ease.outCubic(p));
+      if (p < 1 && card.isConnected && rb.isConnected) requestAnimationFrame(count);
+    };
+    requestAnimationFrame(count);
+    setTimeout(() => { rb.textContent = '+' + d.coins; }, 520 + d.stars * 300 + 800);   // final value even if frames are throttled
     const prev = Math.max(0, d.n - (d.newPic ? 1 : 0)) / d.page.pics.length;
     const bar = card.querySelector('#mBar');
     bar.style.transition = 'none'; bar.style.width = (prev * 100) + '%';
@@ -209,10 +220,13 @@
     on(card, '#mHome', () => JT.App.goHome());
   };
 
+  // the FPS meter is a developer tool: it shows only with ?dev in the address, or if it was already switched on
+  const devMode = () => /[?&]dev\b/.test(location.search) || Save.data.settings.fps;
   function settingsRows() {
     const s = Save.data.settings;
     const row = (k, ico, lbl) => '<div class="setRow"><span class="lbl">' + ico + lbl + '</span><button class="switch' + (s[k] ? ' on' : '') + '" data-k="' + k + '" role="switch" aria-checked="' + !!s[k] + '" aria-label="' + lbl + '"></button></div>';
-    return row('sfx', ICON.sound, T('sound')) + row('music', ICON.music, T('music')) + row('haptic', ICON.haptic, T('haptic')) + row('fps', ICON.fps, T('showFps')) +
+    return row('sfx', ICON.sound, T('sound')) + row('music', ICON.music, T('music')) + row('haptic', ICON.haptic, T('haptic')) +
+      row('symbols', ICON.symbols, T('symbols')) + (devMode() ? row('fps', ICON.fps, T('showFps')) : '') +
       '<div class="setRow col"><span class="lbl">' + ICON.lang + T('language') + '</span><div class="seg"><button data-l="vi" class="' + (s.lang !== 'en' ? 'on' : '') + '">Tiếng Việt</button><button data-l="en" class="' + (s.lang === 'en' ? 'on' : '') + '">English</button></div></div>';
   }
   UI.settings = function (inGame) {
@@ -230,6 +244,7 @@
       if (k === 'music' || k === 'sfx') A.refresh();
       if (k === 'haptic' && s[k]) A.buzz(20);
       if (k === 'fps') JT.App.showFps(s[k]);
+      if (k === 'symbols') { R.symbols = s[k]; R.clearCache(); if (JT.App.state === 'game') JT.Game.layout(); else UI.updateHome(); }
     }));
     card.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
       Save.data.settings.lang = b.dataset.l; Save.save();
@@ -257,7 +272,7 @@
     const starRow = n => [0, 1, 2].map(i => ICON.star.replace('<svg ', '<svg ' + (i < n ? '' : 'class="dim" '))).join('');
     const cards = pg.pics.map(k => {
       const li = C.ALBUM_ORDER.indexOf(k), pic = C.PICS[k], got = d.album.includes(k), locked = li > d.level;
-      return '<button class="pcard' + (locked ? ' locked' : '') + (li === d.level ? ' cur' : '') + '" data-li="' + li + '"><canvas width="132" height="132" data-k="' + k + '" data-p="' + (got ? 1 : 0) + '"></canvas>' +
+      return '<button class="pcard' + (locked ? ' locked' : '') + (li === d.level ? ' cur' : '') + '" data-li="' + li + '"><canvas width="132" height="132" data-k="' + k + '" data-p="' + (got ? 1 : li === d.level ? 'g' : 0) + '"></canvas>' +
         (locked ? '<span class="lock">' + ICON.lock + '</span>' : '') +
         '<div class="nm">' + (locked ? '???' : (en ? pic.en : pic.name)) + '</div>' +
         '<div class="st">' + (got ? starRow(d.stars[li] || 0) : '<span>' + T('level') + ' ' + (li + 1) + '</span>') + '</div></button>';
@@ -273,7 +288,7 @@
       '<p' + (claimed ? ' class="pageBonus"' : '') + '>' + (claimed ? T('pageClaimed') : T('pageReward', { c: JT.App.PAGE_COINS })) + '</p>' +
       '<div class="pageDots">' + C.ALBUM.map((p, i) => '<i class="' + (i === page ? 'on' : p.pics.every(k => d.album.includes(k)) ? 'full' : '') + '"></i>').join('') + '</div>',
       'album', close);
-    card.querySelectorAll('.pcard canvas').forEach(cv => drawPic(cv, C.picInfo(cv.dataset.k), cv.dataset.p === '1'));
+    card.querySelectorAll('.pcard canvas').forEach(cv => drawPic(cv, C.picInfo(cv.dataset.k), cv.dataset.p === '1' ? true : cv.dataset.p === 'g' ? 'ghost' : false));
     card.querySelectorAll('.pcard').forEach(b => b.addEventListener('click', () => JT.App.startLevel(+b.dataset.li)));
     on(card, '#mClose', close);
     on(card, '#aPrev', () => UI.album(page - 1));

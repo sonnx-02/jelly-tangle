@@ -28,7 +28,10 @@
   const blobR = paint => lay.slotR * (0.76 + 0.24 * Math.min(1, paint / 18));
   const slotPos = i => ({ x: lay.rackX + lay.rackPad + lay.sw * (i + 0.5), y: lay.rackY + lay.rackH * 0.47 });
   const picCell = i => ({ x: lay.picX + (i % L.pic.w + 0.5) * lay.pc, y: lay.picY + (((i / L.pic.w) | 0) + 0.5) * lay.pc });
-  function shakeIt(amp, dur) { shake = { t0: clock, amp: amp, dur: dur }; }
+  const calm = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function shakeIt(amp, dur) { shake = { t0: clock, amp: calm() ? 0 : amp, dur: dur }; }
+  // the album page this level belongs to: its backdrop colours
+  const pageOf = () => C.ALBUM.find(p => p.pics.includes(L.pic.key)) || C.ALBUM[0];
   function tip(key, ms) {
     const tips = JT.Save.data.tips;
     if (tips[key]) return;
@@ -196,7 +199,7 @@
     staticCv.width = Math.round(lay.W * dpr); staticCv.height = Math.round(lay.H * dpr);
     const c = staticCv.getContext('2d');
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
-    R.background(c, lay.W, lay.H);
+    R.background(c, lay.W, lay.H, pageOf().bg);
     R.panel(c, lay.ppX, lay.ppY, lay.ppW, lay.ppH, 4.6 * u);
     U.rr(c, lay.picX - 0.9 * u, lay.picY - 0.9 * u, lay.picW + 1.8 * u, lay.picH + 1.8 * u, 2.6 * u); c.fillStyle = '#e9d3b1'; c.fill();
     R.panel(c, lay.rackX, lay.rackY, lay.rackW, lay.rackH, lay.rackH / 2);
@@ -216,8 +219,8 @@
     // only the open ring shows its colour seeds, the next ring a faint preview; deeper rings stay blank until they open
     for (let i = 0; i < pic.total; i++) {
       const ly = pic.layer[i], x = (i % pic.w) * pc, y = ((i / pic.w) | 0) * pc;
-      if (ly === visRing) R.socket(c, x, y, pc, COL(pic.cells[i]), true);
-      else if (ly === visRing + 1) R.socket(c, x, y, pc, COL(pic.cells[i]), false);
+      if (ly === visRing) R.socket(c, x, y, pc, COL(pic.cells[i]), true, pic.cells[i]);
+      else if (ly === visRing + 1) R.socket(c, x, y, pc, COL(pic.cells[i]), false, pic.cells[i]);
       else R.socket(c, x, y, pc, null, false);
     }
     unpRing = visRing; unpVer = layVer;
@@ -327,6 +330,11 @@
     after(dur, () => { W[id].bump = null; });
     // no hearts: a blocked tap never ends the level, it only costs stars (see App.onWin)
     misses++;
+    // say so at the two bumps that actually cost a star (3 -> 2 on the first, 2 -> 1 on the third)
+    if (misses === 1 || misses === 3) {
+      const hd = L.hoses[id].cells[L.hoses[id].cells.length - 1];
+      FX.text('−1 ★', sx(hd[0]), sy(hd[1]) - lay.cell * 0.45, { size: lay.u * 5.4, fill: '#ffd23f', stroke: '#8a3a12', delay: dur * 0.42, rise: lay.u * 8, life: 1100 });
+    }
     tip('tipBlocked');
   }
 
@@ -415,7 +423,7 @@
       } else if (e.empty) popBlob(e.slot, false);
       else if (e.drained) { popBlob(e.slot, true); tip('tipDone'); }
     }
-    if (S.left === 0) { status = 'won'; hintId = handId = -1; pickMode = false; JT.UI.setPick(false); return; }
+    if (S.left === 0) { status = 'won'; hintId = handId = -1; pickMode = false; JT.UI.setPick(false); JT.UI.toast(''); return; }
     if (!ev.length && !pickMode) {
       const pending = S.slots.some(sl => sl && sl.ready > clock) || exits.length || balls.length;
       if (!pending && C.options(L, S).length === 0) lose(rackBlocked() ? 'rack' : 'stuck');
@@ -430,7 +438,7 @@
   }
   function lose(reason) {
     if (status !== 'play') return;
-    status = 'lost'; hintId = handId = -1;
+    status = 'lost'; hintId = handId = -1; JT.UI.toast('');
     rackAlarm = clock; shakeIt(lay.u, 300);
     after(500, () => { A.lose(); A.buzz([30, 60, 30]); });
     after(800, () => JT.App.onFail(reason));
@@ -454,7 +462,8 @@
     FX.confetti(cx, cy, 70, -Math.PI / 2, Math.PI, 0.95);
     FX.confetti(0, lay.H * 0.72, 45, -Math.PI / 3, 0.5, 1.35);
     FX.confetti(lay.W, lay.H * 0.72, 45, -Math.PI * 2 / 3, 0.5, 1.35);
-    FX.text(T('winPraise'), lay.W / 2, cy, { size: lay.u * 11, fill: '#ffe14d', stroke: '#e23f85', life: 1500, rise: lay.u * 4, delay: 150 });
+    // the praise matches the stars the player is about to get (see App.onWin)
+    FX.text(T(misses === 0 ? 'winPraise' : misses <= 2 ? 'winPraise2' : 'winPraise1'), lay.W / 2, cy, { size: lay.u * 11, fill: '#ffe14d', stroke: '#e23f85', life: 1500, rise: lay.u * 4, delay: 150 });
     let t = 520, k = 0;
     for (let id = 0; id < L.hoses.length; id++) {
       if (S.removed[id]) continue;
@@ -542,16 +551,29 @@
     else if (idx < 3 && handId < 0 && hintId < 0 && clock - lastInput > (tut ? 2600 : 5500) && clock > 1500 && !exits.length && !balls.length) handId = suggest();
   };
 
-  function suggest() {
-    const sol = C.solve(L, 6000, S);
-    if (sol && sol.length) return sol[0];
-    return -1;
+  // The solver plans as if every jelly finished squirting before the next pull. A hint is usually followed at
+  // once, while jellies are still on the rack, so the new jelly can land in another slot and miss a merge the plan
+  // counted on: a hard level could then dead-end after a few hints. So each candidate is also checked as
+  // "pull right now, then let the paint settle", and the solver's own pick wins only when it survives that too.
+  // When no move is safe this instant but the plan works once the rack settles (a jelly still squirting will free
+  // its slot), the right advice is to wait: { wait: true }. Otherwise { id } is the move to make (-1: none found).
+  function plan() {
+    const sol = C.solve(L, 6000, S), first = sol && sol.length ? sol[0] : -1;
+    const opts = C.options(L, S);
+    const settling = S.slots.some(sl => sl && C.hasDemand(L, S, sl.color)) || exits.length > 0 || balls.length > 0;
+    if (!opts.length) return { id: first, wait: first >= 0 && settling };
+    const safeNow = id => { const t = C.cloneState(S); return !!C.pull(L, t, id) && !!C.solve(L, 4000, t); };
+    const order = first >= 0 ? [first].concat(opts.filter(id => id !== first)) : opts;
+    for (const id of order) if (safeNow(id)) return { id: id, wait: false };
+    return { id: first, wait: first >= 0 && settling };
   }
+  function suggest() { const p = plan(); return p.wait ? -1 : p.id; }
 
   // ---------- boosters ----------
   G.useHint = function () {
     if (status !== 'play') return false;
-    const id = suggest();
+    const p = plan(), id = p.id;
+    if (p.wait) { JT.UI.toast(T('hintWait'), 3000); return false; }   // the booster is not spent
     if (id < 0) { JT.UI.toast(T('noHint'), 3000); return false; }
     hintId = id; handId = id; W[id].wig = clock; lastInput = clock;
     A.hint();
@@ -644,9 +666,19 @@
     let x = lay.stripX + (lay.stripW - total) / 2;
     ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
     for (let k = 0; k < list.length; k++) {
-      const n = left[list[k].c] || 0, tx = x + ts + ts * 0.22;
+      const key = list[k].c, n = left[key] || 0, tx = x + ts + ts * 0.22;
       ctx.globalAlpha = n ? 1 : 0.32;
-      ctx.drawImage(R.tile(list[k].c, ts), x, cy - ts / 2, ts, ts);
+      ctx.drawImage(R.tile(key, ts), x, cy - ts / 2, ts, ts);
+      if (R.symbols) R.glyph(ctx, key, x + ts / 2, cy - ts * 0.04, ts * 0.27, '#ffffff', R.rimOf(COL(key)));
+      // mixing levels: a secondary colour shows the two primaries that make it, as two dots on its tile
+      if (L.mix && C.MIX_PARTS[key]) {
+        const parts = C.MIX_PARTS[key], dr = ts * 0.21;
+        for (let q = 0; q < 2; q++) {
+          const dx = x + ts * (0.27 + q * 0.46), dy = cy + ts * 0.52;
+          ctx.beginPath(); ctx.arc(dx, dy, dr, 0, U.TAU); ctx.fillStyle = COL(parts[q]); ctx.fill();
+          ctx.lineWidth = Math.max(1, dr * 0.45); ctx.strokeStyle = '#fff7e8'; ctx.stroke();
+        }
+      }
       ctx.globalAlpha = 1;
       if (n) { ctx.fillStyle = R.INK; ctx.fillText('×' + n, tx, cy + ts * 0.07); }
       else {
@@ -696,7 +728,7 @@
       const shooting = clock - v.shotT < 260;
       if (st < 1) { syk *= 0.9 + 0.1 * st; oy = (1 - st) * u * 0.5; }
       const sleep = !shooting && status === 'play' && S.slots[i] && S.slots[i].ready <= clock && !C.hasDemand(L, S, v.c);
-      R.blob(ctx, p.x + ox, p.y + oy, r, { hex: hex, sx: sxk, sy: syk, emo: status === 'lost' ? 'sad' : shooting ? 'shoot' : sleep ? 'sleep' : 'happy' });
+      R.blob(ctx, p.x + ox, p.y + oy, r, { hex: hex, sx: sxk, sy: syk, emo: status === 'lost' ? 'sad' : shooting ? 'shoot' : sleep ? 'sleep' : 'happy', glyph: v.c });
       R.pill(ctx, String(v.paint), p.x + ox, p.y + R0 * 1.02, 3.9 * u);
       if (sleep) {
         ctx.fillStyle = R.INK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -704,7 +736,8 @@
           const zp = ((clock * 0.0007 + z * 0.5) % 1);
           ctx.globalAlpha = 0.6 * Math.sin(zp * Math.PI);
           ctx.font = '900 ' + (u * (2.4 + zp * 1.6)) + 'px Nunito, system-ui, sans-serif';
-          ctx.fillText('z', p.x + r * 0.7 + zp * u * 2, p.y - r * 0.8 - zp * u * 3.2);
+          const side = R.symbols ? -1 : 1;   // the colour badge sits at the jelly's right shoulder: the z's float off the left then
+          ctx.fillText('z', p.x + side * (r * 0.7 + zp * u * 2), p.y - r * 0.8 - zp * u * 3.2);
         }
         ctx.globalAlpha = 1;
       }
@@ -712,8 +745,15 @@
   }
 
   function wormLabel(ctx, wv, h, pts, hex, hid, w, cell) {
-    const q = pts[Math.round((wv.numS / wv.Lw) * (pts.length - 1))];
+    const at = s => pts[Math.round(U.clamp(s / wv.Lw, 0, 1) * (pts.length - 1))];
+    const q = at(wv.numS);
     R.label(ctx, hid ? '?' : String(h.paint), q.x, q.y - w * 0.04, Math.max(9, cell * 0.34), '#ffffff', hid ? '#746d92' : U.shade(hex, -0.58));
+    if (R.symbols && !hid) {
+      // the colour symbol sits one cell nearer the tail than the number (a two-cell worm: between number and head)
+      const ni = Math.floor((h.len - 1) / 2), gs = ni >= 1 ? wv.path.cellS[ni - 1] : wv.Lw * 0.46;
+      const g = at(gs);
+      R.glyph(ctx, h.color, g.x, g.y, w * 0.27, '#ffffff', R.rimOf(hex));
+    }
   }
   // body + number of a resting worm, rendered once at device resolution and aligned to whole device pixels
   function wormSprite(wv, h, pts, hex, hid, w, cell, key) {
@@ -770,7 +810,7 @@
         R.worm(ctx, pts, { hex: hex, w: w, glow: glow, wrap: hid, flash: flash });
         wormLabel(ctx, wv, h, pts, hex, hid, w, cell);
       } else {
-        const key = layVer + (hid ? 'w' : 'c') + R.fontGen;
+        const key = layVer + (hid ? 'w' : 'c') + R.fontGen + (R.symbols ? 's' : '');
         if (wv.sprKey !== key) wormSprite(wv, h, pts, hex, hid, w, cell, key);
         ctx.drawImage(wv.spr, wv.sprX, wv.sprY, wv.sprW, wv.sprH);
       }
@@ -827,7 +867,7 @@
   function drawBalls(ctx) {
     for (const b of balls) {
       const q = ballPos(b), st = 1 + 0.16 * Math.sin(q.p * Math.PI);
-      R.blob(ctx, q.x, q.y, q.r, { hex: COL(b.c), sx: 2 - st, sy: st, emo: 'happy', noShadow: true });
+      R.blob(ctx, q.x, q.y, q.r, { hex: COL(b.c), sx: 2 - st, sy: st, emo: 'happy', noShadow: true, glyph: b.c });
     }
   }
   function drawShots(ctx) {
@@ -878,6 +918,7 @@
         options: C.options(L, S), worms: L.hoses.length, removed: Array.from(S.removed).reduce((a, b) => a + b, 0), exits: exits.length, balls: balls.length, shots: shots.length };
     },
     suggest: suggest,
+    plan: plan,
     layout: () => lay,
     wormCenter(id) { const m = pointAt(W[id].path, W[id].Lw / 2); return { x: sx(m.x), y: sy(m.y) }; }
   };

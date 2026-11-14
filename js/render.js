@@ -12,11 +12,18 @@
   // used to get its own shaded rim plus glossy streaks, which read as generated; a shared outline reads as drawn.
   const rims = new Map();
   const rimOf = R.rimOf = hex => { let v = rims.get(hex); if (!v) { v = U.mix(U.shade(hex, -0.42), INK, 0.5); rims.set(hex, v); } return v; };
+  // A candy that is too dark for the chocolate box gets a pale halo. Decided by real WCAG contrast against the
+  // box squares (#4b2a1b), not by a guess: below 3:1 a strong halo, below 4:1 a light one.
+  const halos = new Map();
+  const haloOf = hex => { let v = halos.get(hex); if (v === undefined) { const c = U.contrast(hex, '#4b2a1b'); v = c < 3 ? 0.5 : c < 4 ? 0.32 : 0; halos.set(hex, v); } return v; };
+  R.symbols = false;   // colour symbols for colour-blind players (settings)
 
   // ---------- scene ----------
-  R.background = function (ctx, W, H) {
+  // bg: [top, middle, bottom, glow tint] from the album page (Core.ALBUM[].bg); defaults to the first page
+  R.background = function (ctx, W, H, bg) {
+    bg = bg || C.ALBUM[0].bg;
     const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#ffe7c6'); g.addColorStop(0.5, '#ffcbd0'); g.addColorStop(1, '#ffa6c7');
+    g.addColorStop(0, bg[0]); g.addColorStop(0.5, bg[1]); g.addColorStop(1, bg[2]);
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
     const glow = (x, y, r, c) => {
       const rg = ctx.createRadialGradient(x, y, 0, x, y, r);
@@ -24,8 +31,8 @@
       ctx.fillStyle = rg; ctx.fillRect(x - r, y - r, r * 2, r * 2);
     };
     glow(W * 0.08, H * 0.06, W * 0.8, 'rgba(255,255,255,0.55)');
-    glow(W * 1.0, H * 0.5, W * 0.7, 'rgba(255,236,190,0.4)');
-    glow(W * 0.15, H * 1.0, W * 0.8, 'rgba(255,110,170,0.28)');
+    glow(W * 1.0, H * 0.5, W * 0.7, U.rgba(bg[3], 0.45));
+    glow(W * 0.15, H * 1.0, W * 0.8, U.rgba(U.shade(bg[2], -0.12), 0.28));
     // polka dots
     ctx.fillStyle = 'rgba(255,255,255,0.2)';
     const s = W / 8;
@@ -97,24 +104,62 @@
   };
   R.clearCache = function () { tiles.clear(); };
 
-  // a whole picture, used by previews (home card, album, win popup). painted: fn(i) -> bool, or true
+  // A whole picture, used by previews (home card, album, win popup). painted: true (finished), 'ghost' (the
+  // picture you are about to make, faded), fn(i) -> bool, or falsy (seed dots only, for locked pictures).
   R.picture = function (ctx, pic, x, y, cellPx, painted) {
     for (let i = 0; i < pic.total; i++) {
       const cx = x + (i % pic.w) * cellPx, cy = y + ((i / pic.w) | 0) * cellPx;
-      if (painted === true || (painted && painted(i))) ctx.drawImage(R.tile(pic.cells[i], cellPx), cx, cy, cellPx, cellPx);
+      if (painted === 'ghost') {
+        ctx.globalAlpha = 0.42; ctx.drawImage(R.tile(pic.cells[i], cellPx), cx, cy, cellPx, cellPx); ctx.globalAlpha = 1;
+      } else if (painted === true || (painted && painted(i))) ctx.drawImage(R.tile(pic.cells[i], cellPx), cx, cy, cellPx, cellPx);
       else R.socket(ctx, cx, cy, cellPx, R.COL(pic.cells[i]), false);
     }
   };
-  // an empty picture cell: a socket with a seed dot of its target colour (hex null: a closed ring, no dot)
-  R.socket = function (ctx, x, y, s, hex, active) {
+  // An empty picture cell: a socket with a seed of its target colour (hex null: a closed ring, no seed).
+  // key: the colour key; with colour symbols on, the seed is drawn as that colour's shape instead of a dot.
+  R.socket = function (ctx, x, y, s, hex, active, key) {
     const m = s * 0.06;
     U.rr(ctx, x + m, y + m, s - 2 * m, s - 2 * m, s * 0.24);
     ctx.fillStyle = active ? '#fffdf6' : '#dcc5a2'; ctx.fill();
     if (!hex) return;
     const r = s * (active ? 0.27 : 0.2);
+    if (R.symbols && key) {
+      R.glyph(ctx, key, x + s / 2, y + s / 2, r * 1.15, active ? hex : U.mix(hex, '#dcc5a2', 0.18), active ? U.shade(hex, -0.35) : null);
+      return;
+    }
     ctx.beginPath(); ctx.arc(x + s / 2, y + s / 2, r, 0, TAU);
     ctx.fillStyle = active ? hex : U.mix(hex, '#dcc5a2', 0.18); ctx.fill();
     if (active) { ctx.lineWidth = Math.max(1, s * 0.05); ctx.strokeStyle = U.shade(hex, -0.22); ctx.stroke(); }
+  };
+
+  // ---------- colour symbols (for colour-blind players) ----------
+  // One simple shape per colour (Core.PALETTE[k].glyph), drawn centred in a circle of radius r.
+  const GLYPH = {
+    heart(c, r) { c.moveTo(0, r * 0.85); c.bezierCurveTo(-r * 1.25, -r * 0.05, -r * 0.6, -r * 1.05, 0, -r * 0.42); c.bezierCurveTo(r * 0.6, -r * 1.05, r * 1.25, -r * 0.05, 0, r * 0.85); },
+    tri(c, r) { c.moveTo(0, -r); c.lineTo(r * 0.95, r * 0.72); c.lineTo(-r * 0.95, r * 0.72); },
+    triDown(c, r) { c.moveTo(0, r); c.lineTo(r * 0.95, -r * 0.72); c.lineTo(-r * 0.95, -r * 0.72); },
+    star(c, r) { for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, q = k % 2 ? r * 0.45 : r; c.lineTo(Math.cos(a) * q, Math.sin(a) * q); } },
+    diamond(c, r) { c.moveTo(0, -r); c.lineTo(r * 0.8, 0); c.lineTo(0, r); c.lineTo(-r * 0.8, 0); },
+    square(c, r) { const s = r * 0.8; c.rect(-s, -s, s * 2, s * 2); },
+    circle(c, r) { c.arc(0, 0, r * 0.85, 0, TAU); },
+    ring(c, r) { c.arc(0, 0, r * 0.88, 0, TAU); c.moveTo(r * 0.45, 0); c.arc(0, 0, r * 0.45, 0, TAU, true); },
+    plus(c, r) { const t = r * 0.34; c.moveTo(-t, -r); c.lineTo(t, -r); c.lineTo(t, -t); c.lineTo(r, -t); c.lineTo(r, t); c.lineTo(t, t); c.lineTo(t, r); c.lineTo(-t, r); c.lineTo(-t, t); c.lineTo(-r, t); c.lineTo(-r, -t); c.lineTo(-t, -t); },
+    cross(c, r) { c.save(); c.rotate(Math.PI / 4); GLYPH.plus(c, r * 1.05); c.restore(); },
+    flower(c, r) { for (let k = 0; k < 4; k++) { const a = k * Math.PI / 2, px = Math.cos(a) * r * 0.48, py = Math.sin(a) * r * 0.48; c.moveTo(px + r * 0.46, py); c.arc(px, py, r * 0.46, 0, TAU); } },
+    moon(c, r) { c.arc(0, 0, r * 0.9, Math.PI * 0.3, Math.PI * 1.7); c.arc(r * 0.42, 0, r * 0.62, Math.PI * 1.45, Math.PI * 0.55, true); },
+    pentagon(c, r) { for (let k = 0; k < 5; k++) { const a = -Math.PI / 2 + k * TAU / 5; c.lineTo(Math.cos(a) * r * 0.95, Math.sin(a) * r * 0.95); } },
+    bowtie(c, r) { c.moveTo(-r * 0.9, -r * 0.75); c.lineTo(0, 0); c.lineTo(-r * 0.9, r * 0.75); c.moveTo(r * 0.9, -r * 0.75); c.lineTo(0, 0); c.lineTo(r * 0.9, r * 0.75); },
+    bars(c, r) { for (let k = -1; k <= 1; k++) c.rect(-r * 0.85, k * r * 0.62 - r * 0.17, r * 1.7, r * 0.34); }
+  };
+  // fill: the shape's colour; stroke: an outline (pass null for none) so it reads on any background
+  R.glyph = function (ctx, key, x, y, r, fill, stroke) {
+    const shape = GLYPH[C.PALETTE[key] && C.PALETTE[key].glyph];
+    if (!shape) return;
+    ctx.save(); ctx.translate(x, y);
+    ctx.beginPath(); shape(ctx, r); ctx.closePath();
+    if (stroke) { ctx.lineJoin = 'round'; ctx.lineWidth = Math.max(1.4, r * 0.32); ctx.strokeStyle = stroke; ctx.stroke(); }
+    ctx.fillStyle = fill; ctx.fill('nonzero');
+    ctx.restore();
   };
 
   // ---------- gummy worm ----------
@@ -134,7 +179,8 @@
     }
     const rim = Math.max(1.5, w * 0.1);
     trace(0, w * 0.18); ctx.strokeStyle = 'rgba(15,4,0,0.28)'; ctx.lineWidth = w; ctx.stroke();          // drop shadow
-    if (U.lum(hex) < 0.47) { trace(0, 0); ctx.strokeStyle = 'rgba(255,232,210,0.4)'; ctx.lineWidth = w + Math.max(2, w * 0.14); ctx.stroke(); }  // dark candy needs an edge on chocolate
+    const halo = o.onLight ? 0 : haloOf(hex);
+    if (halo) { trace(0, 0); ctx.strokeStyle = 'rgba(255,236,214,' + halo + ')'; ctx.lineWidth = w + Math.max(2.5, w * 0.18); ctx.stroke(); }  // dark candy needs an edge on chocolate
     trace(0, 0); ctx.strokeStyle = rimOf(hex); ctx.lineWidth = w; ctx.stroke();                             // outline
     trace(0, -rim * 0.45); ctx.strokeStyle = hex; ctx.lineWidth = w - rim * 2; ctx.stroke();                // body
     if (o.wrap) {                                                                                           // foil stripes
@@ -230,6 +276,12 @@
       else if (emo === 'sad') { ctx.beginPath(); ctx.arc(0, my + r * 0.16, r * 0.17, 1.2 * Math.PI, 1.8 * Math.PI); ctx.stroke(); }
       else if (emo === 'sleep') { ctx.beginPath(); ctx.moveTo(-r * 0.08, my); ctx.lineTo(r * 0.08, my); ctx.stroke(); }
       else { ctx.beginPath(); ctx.arc(0, my - r * 0.06, r * 0.17, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke(); }
+    }
+    if (o.glyph && R.symbols) {         // colour symbol on a white badge at the jelly's shoulder
+      const bx = r * 0.66, by = -r * 0.62, br = r * 0.38;
+      ctx.fillStyle = '#ffffff'; ctx.strokeStyle = INK; ctx.lineWidth = Math.max(1.2, r * 0.07);
+      ctx.beginPath(); ctx.arc(bx, by, br, 0, TAU); ctx.fill(); ctx.stroke();
+      R.glyph(ctx, o.glyph, bx, by, br * 0.62, INK, null);
     }
     ctx.restore();
   };
