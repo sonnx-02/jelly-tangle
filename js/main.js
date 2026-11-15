@@ -31,21 +31,36 @@
 
   // ---------- home scene: candy worms strolling behind the menu ----------
   const strollers = [];
+  // The worms stroll below the logo only, so it keeps a clean backdrop; they fill the gap under it and peek out
+  // around the level card. Lanes further down are "nearer": a little bigger and faster. A lane is a fraction
+  // between the logo's bottom edge (measured, it differs per screen shape) and the bottom of the screen.
+  let laneTop = 0.3;
   function initHome() {
     const keys = ['K', 'O', 'Y', 'G', 'B', 'P', 'S', 'R'];
-    for (let i = 0; i < 7; i++) {
-      strollers.push({ c: keys[i], y: 0.1 + i * 0.13 + U.rand(-0.02, 0.02), dir: i % 2 ? 1 : -1, speed: U.rand(0.02, 0.036), len: U.rand(0.34, 0.6),
-        off: Math.random(), amp: U.rand(0.012, 0.026), ph: U.rand(0, 6), blink: U.rand(500, 3000) });
+    const n = 7;
+    for (let i = 0; i < n; i++) {
+      const near = i / (n - 1);
+      strollers.push({ c: keys[i], lane: (i + 0.5) / n + U.rand(-0.02, 0.02), dir: i % 2 ? 1 : -1, speed: U.rand(0.018, 0.03) * (0.85 + near * 0.3), len: U.rand(0.34, 0.6),
+        scale: 0.86 + near * 0.22, off: Math.random(), amp: U.rand(0.008, 0.016), ph: U.rand(0, 6), blink: U.rand(500, 3000) });
     }
   }
+  function measureLanes() {
+    const app = document.getElementById('app').getBoundingClientRect(), lg = document.getElementById('logo').getBoundingClientRect();
+    if (lg.height && app.height) laneTop = U.clamp((lg.bottom - app.top) / app.height + 0.035, 0.15, 0.6);
+  }
+  // the home backdrop follows the album page of the next level, like the level itself
+  function homeBg() { const k = C.levelCfg(Save.data.level).pic, pg = C.ALBUM.find(p => p.pics.includes(k)); return pg ? pg.bg : C.ALBUM[0].bg; }
   function drawHome(ctx, t) {
-    const W = App.W, H = App.H, w = W * 0.085;
+    const W = App.W, H = App.H;
     if (!bgCv) {
       bgCv = document.createElement('canvas'); bgCv.width = Math.round(W * R.dpr); bgCv.height = Math.round(H * R.dpr);
-      const c = bgCv.getContext('2d'); c.setTransform(R.dpr, 0, 0, R.dpr, 0, 0); R.background(c, W, H);
+      const c = bgCv.getContext('2d'); c.setTransform(R.dpr, 0, 0, R.dpr, 0, 0); R.background(c, W, H, homeBg());
+      measureLanes();
     }
     ctx.drawImage(bgCv, 0, 0, W, H);
     for (const s of strollers) {
+      const w = W * 0.085 * s.scale;
+      s.y = laneTop + s.lane * (0.985 - laneTop);
       const body = W * s.len, span = W + body + w * 4, prog = (t * s.speed * 0.001 + s.off) % 1;
       const hx = s.dir > 0 ? -w * 2 + prog * span : W + w * 2 - prog * span;
       const pts = [], n = 24;
@@ -154,7 +169,7 @@
   };
   App.goHome = function () {
     UI.closeModal();
-    UI.curtain(() => { App.state = 'home'; UI.showHome(); });
+    UI.curtain(() => { App.state = 'home'; bgCv = null; UI.showHome(); });
   };
   App.onWin = function (res) {
     const idx = App.cur, L = JT.Levels.get(idx), key = L.pic.key, d = Save.data;
@@ -191,6 +206,13 @@
     if (act === 'slot') G.addSlot();
     else { if (!free) { d.boosters.pick++; Save.save(); UI.setBoosters(); } G.setPick(true); }
   };
+  // Android back button (android/…/MainActivity.java calls this). true = handled here: a popup closes, or a level
+  // pauses. false = nothing to close at the home screen, so Android sends the app to the background.
+  App.back = function () {
+    if (UI.modalOpen()) { UI.dismiss(); return true; }
+    if (App.state === 'game') { if (G.status() === 'play') UI.settings(true); return true; }
+    return false;
+  };
   App.addCoins = function (n) { Save.data.coins += n; Save.save(); UI.setCoins(Save.data.coins); };
   App.spendBooster = function (k) {
     if (infinite()) return;
@@ -206,6 +228,7 @@
   // ---------- boot ----------
   function boot() {
     Save.load();
+    R.symbols = !!Save.data.settings.symbols;
     world = document.getElementById('world'); fx = document.getElementById('fx');
     wctx = world.getContext('2d', { alpha: false });   // the scene always fills the canvas: an opaque surface composites faster
     fctx = fx.getContext('2d');
@@ -221,6 +244,10 @@
       const r = world.getBoundingClientRect();
       G.pointerDown(e.clientX - r.left, e.clientY - r.top);
       e.preventDefault();
+    });
+    // leaving the app (or tab) in the middle of a level: come back to the pause menu, not to a level already running
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && App.state === 'game' && G.status() === 'play' && !UI.modalOpen()) UI.settings(true);
     });
     document.addEventListener('pointerdown', () => A.unlock(), { passive: true });
     document.addEventListener('keydown', () => A.unlock());
@@ -252,12 +279,14 @@
   JT.Debug = {
     advance(ms) { let t = ms; while (t > 0) { const d = Math.min(16, t); App.step(d); t -= d; } return G.debug.state(); },
     tick(now) { frame(now); },   // one real loop iteration at a chosen timestamp: lets a test feed the frame meter any cadence
+    // follow the hint like a player would, waiting when the hint says to wait (a jelly still has to free its slot)
     play(steps, gap) {
       for (let i = 0; i < steps; i++) {
         if (G.status() !== 'play') break;
-        const id = G.debug.suggest();
-        if (id < 0) break;
-        G.tapWorm(id);
+        const p = G.debug.plan();
+        if (p.wait) { JT.Debug.advance(gap || 1500); continue; }
+        if (p.id < 0) break;
+        G.tapWorm(p.id);
         JT.Debug.advance(gap || 1500);
       }
       return G.debug.state();

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- the web boot screen's pink (between #ffb6d2 and #ff6aa6), so the native splash hands over without a flash -->
+    <color name="boot">#FFFF86B8</color>
+</resources>

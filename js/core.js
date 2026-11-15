@@ -6,22 +6,27 @@
   'use strict';
   const DIRS = [[0, -1], [1, 0], [0, 1], [-1, 0]];
 
+  // Tuned with CIEDE2000 on every colour pair that shares a picture, under normal vision and simulated
+  // protanopia / deuteranopia / tritanopia (Machado 2009). Each colour moved at most ~ΔE 9 from its first
+  // version, mostly in lightness, so the candy keeps its hue: the closest pair in normal vision went from
+  // ΔE 14 to 17, the worst deuteranopia pair from 1 to 3 (Berry/Grape; the symbols below cover that one).
+  // glyph: the shape that stands for the colour when "colour symbols" is on (see Render.glyph).
   const PALETTE = {
-    R: { name: 'Đỏ', en: 'Cherry', hex: '#ff4a5c' },
-    O: { name: 'Cam', en: 'Orange', hex: '#ff9a2e' },
-    Y: { name: 'Vàng', en: 'Lemon', hex: '#ffd42e' },
-    G: { name: 'Lá', en: 'Apple', hex: '#2fcf6b' },
-    L: { name: 'Lá non', en: 'Lime', hex: '#b9e83a' },
-    B: { name: 'Lam', en: 'Berry', hex: '#3184ff' },
-    S: { name: 'Trời', en: 'Sky', hex: '#66d3ff' },
-    T: { name: 'Ngọc', en: 'Mint', hex: '#16c9b2' },
-    P: { name: 'Tím', en: 'Grape', hex: '#a45cf0' },
-    K: { name: 'Hồng', en: 'Bubblegum', hex: '#ff72b6' },
-    W: { name: 'Trắng', en: 'Milk', hex: '#fffaf0' },
-    C: { name: 'Be', en: 'Caramel', hex: '#f6c88f' },
-    N: { name: 'Nâu', en: 'Cola', hex: '#c67c47' },
-    D: { name: 'Đêm', en: 'Blueberry', hex: '#4d58cf' },
-    A: { name: 'Than', en: 'Licorice', hex: '#6c7290' }
+    R: { name: 'Đỏ', en: 'Cherry', hex: '#ee3a5b', glyph: 'heart' },
+    O: { name: 'Cam', en: 'Orange', hex: '#ff8a1c', glyph: 'tri' },
+    Y: { name: 'Vàng', en: 'Lemon', hex: '#ffdb2e', glyph: 'star' },
+    G: { name: 'Lá', en: 'Apple', hex: '#34d26f', glyph: 'diamond' },
+    L: { name: 'Lá non', en: 'Lime', hex: '#c6ef3a', glyph: 'triDown' },
+    B: { name: 'Lam', en: 'Berry', hex: '#3184ff', glyph: 'square' },
+    S: { name: 'Trời', en: 'Sky', hex: '#6fd8ff', glyph: 'circle' },
+    T: { name: 'Ngọc', en: 'Mint', hex: '#0aa898', glyph: 'plus' },
+    P: { name: 'Tím', en: 'Grape', hex: '#a964f2', glyph: 'flower' },
+    K: { name: 'Hồng', en: 'Bubblegum', hex: '#ff94cc', glyph: 'ring' },
+    W: { name: 'Trắng', en: 'Milk', hex: '#fffaf0', glyph: 'moon' },
+    C: { name: 'Be', en: 'Caramel', hex: '#f9caa6', glyph: 'pentagon' },
+    N: { name: 'Nâu', en: 'Cola', hex: '#a05c35', glyph: 'cross' },
+    D: { name: 'Đêm', en: 'Blueberry', hex: '#4d58cf', glyph: 'bowtie' },
+    A: { name: 'Than', en: 'Licorice', hex: '#6c7290', glyph: 'bars' }
   };
   // primary + primary -> secondary (only in levels with mixing)
   const MIX = { RY: 'O', YR: 'O', YB: 'G', BY: 'G', RB: 'P', BR: 'P' };
@@ -64,12 +69,14 @@
   };
 
   // Album: 5 themed pages x 6 pictures; level N uses picture N in this order
+  // Album: 5 themed pages x 6 pictures; level N uses picture N in this order.
+  // bg: the page's backdrop (top, middle, bottom of the gradient, then the dot tint), so each page feels like a new place.
   const ALBUM = [
-    { key: 'sunny', en: 'Sunny Day', name: 'Ngày nắng', pics: ['heart', 'cat', 'fish', 'flower', 'mushroom', 'icecream'] },
-    { key: 'trip', en: 'Adventure', name: 'Phiêu lưu', pics: ['rocket', 'house', 'balloon', 'sailboat', 'bus', 'lighthouse'] },
-    { key: 'bakery', en: 'Bakery', name: 'Tiệm bánh', pics: ['cupcake', 'watermelon', 'candy', 'cake', 'donut', 'lollipop'] },
-    { key: 'ocean', en: 'Ocean', name: 'Đại dương', pics: ['whale', 'starfish', 'turtle', 'octopus', 'crab', 'jellyfish'] },
-    { key: 'forest', en: 'Forest', name: 'Rừng xanh', pics: ['owl', 'fox', 'rabbit', 'bee', 'pine', 'violet'] }
+    { key: 'sunny', en: 'Sunny Day', name: 'Ngày nắng', pics: ['heart', 'cat', 'fish', 'flower', 'mushroom', 'icecream'], bg: ['#ffe7c6', '#ffcbd0', '#ffa6c7', '#fff1e6'] },
+    { key: 'trip', en: 'Adventure', name: 'Phiêu lưu', pics: ['rocket', 'house', 'balloon', 'sailboat', 'bus', 'lighthouse'], bg: ['#e4f4ff', '#c3defc', '#a9bdf5', '#f2f8ff'] },
+    { key: 'bakery', en: 'Bakery', name: 'Tiệm bánh', pics: ['cupcake', 'watermelon', 'candy', 'cake', 'donut', 'lollipop'], bg: ['#fff0e2', '#ffd9e4', '#f7b3d0', '#fff6ee'] },
+    { key: 'ocean', en: 'Ocean', name: 'Đại dương', pics: ['whale', 'starfish', 'turtle', 'octopus', 'crab', 'jellyfish'], bg: ['#e0fbf6', '#b1ebec', '#86cfe3', '#effffc'] },
+    { key: 'forest', en: 'Forest', name: 'Rừng xanh', pics: ['owl', 'fox', 'rabbit', 'bee', 'pine', 'violet'], bg: ['#f3fbe2', '#d3efc4', '#a8d9a9', '#f8fff0'] }
   ];
   const ALBUM_ORDER = ALBUM.reduce((a, pg) => a.concat(pg.pics), []);
 
