@@ -6,7 +6,8 @@
    - a jelly has weight: a low thump, saturated so its harmonics carry that weight on phone speakers that cannot
      play the fundamental, under a wet squish and the short smack of contact, with a little jiggle after;
    - a worm unsticks with a wet, sticky slide that rises, broken by tiny tacky clicks, and pops as it leaves;
-   - paint lands in soft pats like rain on paper, foil wrappers crinkle, coins clink, buttons tap like wood;
+   - paint lands in small pops, warm, clear and soft, in the music's key and bubbling upwards as a ring fills; foil
+     wrappers crinkle, coins clink, buttons tap like wood;
    - rewards are a kalimba in C major pentatonic (the music's key), in a small warm room;
    - sounds sit where they happen: a worm on the left of the box is heard on the left.
    Mix: every variation is measured when it is made (its loudest 50 ms) and scaled to the level its sound is meant
@@ -144,11 +145,21 @@
       hiss(o, 0, d, 0.8, { src: 'pink', type: 'bp', f0: 450, f1: 900, q: 3.2, hump: 0.9, wob: [rnd(8, 11), 0.35] });
       return o;
     } },
-    // a drop of paint lands on the picture: a soft pat with a tiny wet plip, like rain on paper
+    // a drop of paint lands on the picture: a small pop on its note, warm, clear and soft, kept short because it plays
+    // up to 8 times a second for most of a level. The pitch jumps up into the note (a small jump, so it pops rather
+    // than boings) with a gentle 3 ms start, an octave over it; a round hollow body (noise ringing a narrow band at
+    // the note) and some weight under it; a crisp but quiet snap of air (1.1-1.35 kHz) that keeps it clear. It is
+    // over in about 65 ms, so a stream of pops stays clean instead of smearing. It ends exactly on C5, so play-back
+    // rates keep every pop on the music's pentatonic notes (A.paint, which plays it E4-E5). Through a phone speaker
+    // a painting stream is about 3 dB softer than the old sine plip, with almost nothing in the 1.5-5 kHz band the
+    // ear is sharpest in (4% against 15%) and no click.
     pat: { n: 6, make() {
-      const o = buf(0.09);
-      hiss(o, 0, 0.03, 0.8, { type: 'bp', f0: rnd(1500, 2100), q: 1.4, attack: 0.0006, tau: 0.006 });
-      sweep(o, 0, rnd(820, 980), rnd(430, 520), 0.025, 0.4, 0.018, { attack: 0.0008 });
+      const o = buf(0.1), C5 = 523.25, g = rnd(0.007, 0.01);
+      sweep(o, 0, C5 * rnd(0.5, 0.6), C5, g, 0.7, rnd(0.018, 0.022), { attack: 0.003 });
+      sweep(o, 0, C5 * 2 * rnd(0.5, 0.6), C5 * 2, g, 0.3, 0.01, { attack: 0.003 });
+      hiss(o, 0.002, 0.04, 0.7, { src: 'pink', type: 'bp', f0: C5, q: 8, attack: 0.002, tau: 0.003 });
+      hiss(o, 0, 0.01, 1.4, { src: 'pink', type: 'bp', f0: rnd(1100, 1350), q: 1.2, attack: 0.0011, tau: 0.002 });
+      sweep(o, 0, 200, 140, 0.012, 0.25, 0.012, { attack: 0.003 });
       return o;
     } },
     // a jelly empties or a worm pops: a bubble (its pitch jumps up as it closes)
@@ -213,7 +224,9 @@
       return o;
     } }
   };
-  const TARGET = { tap: -22, pull: -17, land: -14, merge: -15, swirl: -18, pat: -24, bubble: -18, thunk: -14.5, crinkle: -19, tick: -22, clink: -20, kalimba: -17, tok: -18, sigh: -24, shimmer: -27, drum: -15 };
+  // pat: its weight is a round note in the low mids, which the ear hears less of than the old plip's bright tick, so
+  // at -22.5 (the plip was -24) a painting stream through a phone speaker is about 3 dB softer than before
+  const TARGET = { tap: -22, pull: -17, land: -14, merge: -15, swirl: -18, pat: -22.5, bubble: -18, thunk: -14.5, crinkle: -19, tick: -22, clink: -20, kalimba: -17, tok: -18, sigh: -24, shimmer: -27, drum: -15 };
 
   // loudest 50 ms of a sound, in dB (RMS)
   function loudDb(x) {
@@ -423,13 +436,17 @@
     pop(k, x) { if (!ok() || !room(10)) return; took(); play('bubble', { rate: 1 + Math.min(k || 0, 10) * 0.06, pan: pan(x), verb: 0.05 }); },
     // a jelly lands on the rack
     land(x) { if (!ok()) return; took(2); play('land', { pan: pan(x), verb: 0.05 }); },
-    // one drop reaches the picture (several per second): soft pats that brighten as the ring fills
+    // one drop reaches the picture (up to 8 a second): pops in key. Each is a pentatonic note picked one step either
+    // side of a centre that climbs from G4 to D5 as the ring fills (so E4-E5 in all: warm, low enough to never get
+    // shrill), so the stream bubbles upwards instead of climbing a ladder, and lands a touch apart in time and level
+    // so it never ticks like a machine
     paint(frac, x) {
       if (!ok()) return;
       const n = performance.now();
       if (n - lastPaint < 70 || !room(8)) return;
       lastPaint = n; took();
-      play('pat', { rate: 0.9 + (frac || 0) * 0.35, pan: pan(x), jitter: 0.08 });
+      const note = Math.round((frac || 0) * 3) - 2 + ((Math.random() * 3) | 0) - 1;
+      play('pat', { rate: step5(note), pan: pan(x), jitter: 0.01, gain: rnd(0.8, 1.05), delay: Math.random() * 0.01 });
     },
     // a ring of the picture is finished: a kalimba arpeggio and a little air
     ringDone(r) {

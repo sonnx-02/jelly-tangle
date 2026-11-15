@@ -38,9 +38,9 @@ Repo là một trang tĩnh nên cũng đẩy nguyên thư mục lên được Ne
 python tools/android/build_apk.py
 ```
 
-Ra file `dist/JellyTangle-1.1.7-debug.apk` (khoảng 300 KB, phần lớn là font và ảnh bàn tay). Script dùng thẳng công cụ của Android SDK (aapt2, javac, d8, zipalign, apksigner), không qua Gradle nên không tải thêm gì. SDK và JDK 17 lấy từ `ANDROID_HOME` / `JAVA_HOME`; nếu không đặt, script tự tìm trong bản Unity có cài Android Build Support (`C:\Program Files\Unity\Hub\Editor\<bản>\...\AndroidPlayer`).
+Ra file `dist/JellyTangle-1.1.8-debug.apk` (khoảng 300 KB, phần lớn là font và ảnh bàn tay). Script dùng thẳng công cụ của Android SDK (aapt2, javac, d8, zipalign, apksigner), không qua Gradle nên không tải thêm gì. SDK và JDK 17 lấy từ `ANDROID_HOME` / `JAVA_HOME`; nếu không đặt, script tự tìm trong bản Unity có cài Android Build Support (`C:\Program Files\Unity\Hub\Editor\<bản>\...\AndroidPlayer`).
 
-Cài lên máy: cắm điện thoại rồi chạy `adb install -r dist/JellyTangle-1.1.7-debug.apk`, hoặc chép file APK sang máy và mở (cho phép "cài ứng dụng không rõ nguồn gốc"). Khoá debug nằm ở `tools/android/keys/` (không đưa lên git) và được dùng lại, nên bản build sau cài đè lên bản trước được.
+Cài lên máy: cắm điện thoại rồi chạy `adb install -r dist/JellyTangle-1.1.8-debug.apk`, hoặc chép file APK sang máy và mở (cho phép "cài ứng dụng không rõ nguồn gốc"). Khoá debug nằm ở `tools/android/keys/` (không đưa lên git) và được dùng lại, nên bản build sau cài đè lên bản trước được.
 
 Bản phát hành ký bằng khoá riêng của bạn (mật khẩu truyền qua biến môi trường, không ghi ra dòng lệnh):
 
@@ -200,7 +200,7 @@ Toàn bộ là tổng hợp, không có file âm thanh (`js/audio.js`). Hướng
   - sâu va vào sâu khác: tiếng cao su đục;
   - hai jelly gộp lại: hai tiếng "ọc" rồi lắng xuống;
   - pha màu: tiếng nước xoáy;
-  - giọt màu chạm tranh: tiếng vỗ nhẹ như mưa trên giấy;
+  - giọt màu chạm tranh: một tiếng "pop" nhỏ, ấm, trong và êm. Cao độ nảy nhẹ lên đúng một nốt ngũ cung trong khoảng Mi4–Mi5 (cùng giọng với nhạc nền, các nốt cao dần khi vòng tô sắp đầy), tiếng vào mềm (3 ms). Thân tiếng là tiếng nhiễu ngân rỗng ở đúng nốt đó, có chút trọng lượng bên dưới, và một tiếng nảy giòn nhưng nhỏ (1,1–1,35 kHz) giữ cho tiếng pop rõ ràng. Mỗi tiếng tắt sau khoảng 65 ms nên một tràng pop không bị nhoè vào nhau. Qua loa điện thoại, một tràng tô màu nhỏ hơn tiếng cũ khoảng 3 dB và gần như không còn năng lượng ở dải 1,5–5 kHz, dải tai nhạy nhất (4% so với 15%), không có tiếng tách;
   - jelly hết màu: tiếng bong bóng vỡ;
   - bóc giấy bạc: tiếng sột soạt;
   - xu: tiếng leng keng kim loại;
@@ -214,7 +214,7 @@ Toàn bộ là tổng hợp, không có file âm thanh (`js/audio.js`). Hướng
 | Hành động nặng | jelly rơi, sâu va, gộp, trống "Màn khó" | −14 đến −15 dB |
 | Phần thưởng | nốt kalimba (sao, xong vòng, thắng), tiếng gỗ báo khay đầy | −17 đến −18 dB, thắng và xong vòng là vài nốt chồng lên |
 | Hành động thường | kéo sâu, bong bóng, nước xoáy, giấy bạc | −17 đến −19 dB |
-| Âm nhỏ, lặp nhiều | xu, gõ gỗ, nút bấm, giọt màu | −20 đến −24 dB |
+| Âm nhỏ, lặp nhiều | xu, gõ gỗ, nút bấm, giọt màu | −20 đến −22,5 dB |
 | Không khí | tiếng thở dài khi thua, tiếng lấp lánh | −24 đến −27 dB |
 
 Nhạc nền là đàn kalimba chậm (84 bpm) trên nền bass sin mềm, đi qua bộ lọc và tiếng vọng, tự hạ xuống khi ăn mừng. Mọi âm có cao độ đều nằm trong thang ngũ cung Đô trưởng, cùng giọng với nhạc nền. Khi quá nhiều âm dồn cùng lúc (mưa xu cuối màn), các âm ít quan trọng tự bị bỏ bớt.
