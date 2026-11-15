@@ -80,27 +80,31 @@
   ];
   const ALBUM_ORDER = ALBUM.reduce((a, pg) => a.concat(pg.pics), []);
 
-  const BANDS = { easy: [0, 0.25], normal: [0.25, 0.55], hard: [0.55, 0.85] };
+  // super: the sheet's "Super Hard", shown with its own tag
+  const BANDS = { easy: [0, 0.25], normal: [0.25, 0.55], hard: [0.55, 0.85], super: [0.85, 0.95] };
   const MECH = ['cross', 'mystery', 'rotate', 'mix'];
 
   const BASE = { slots: 5, density: 0.82, lmin: 2, lmax: 5, slack: 0.1, cols: 8, rows: 6 };   // landscape box: wider than tall, so the picture gets the height
   // one entry per album picture, in ALBUM_ORDER
   const LEVELS = [
-    // page 1 is the onboarding page: rack of 6
-    { band: 'easy', cols: 6, rows: 5, density: 0.8, lmax: 4, slack: 0.12, slots: 6 },
-    { band: 'easy', cols: 7, slots: 6 },
-    { band: 'normal', cols: 7, slots: 6 },
-    { band: 'normal', cols: 7, slots: 6 },
-    { band: 'hard', slots: 6 },
-    { band: 'normal', cols: 7, slots: 6 },
-    { band: 'normal', cols: 7 },
-    { band: 'hard', cols: 7 },
-    // level 15+ mechanics (compressed into levels 9-16 for the prototype)
-    { band: 'normal', cols: 7, cross: 0.6, intro: 'cross' },
-    { band: 'hard', cross: 0.8 },
-    { band: 'normal', cols: 7, mystery: 0.4, intro: 'mystery' },
+    // Levels 1-10 are hand-made: the level designers' sheet, brought in by tools/import_levels.py. designed: true
+    // keeps them when tools/levels.html re-bakes; target is the sheet's bot fail range for the level. They bring the
+    // mechanics in early: crossed worms at 3, wrapped candy at 6, dizzy worms at 9. Page 1 has a rack of 6.
+    // (cross / mystery / rotate below only matter if a level ever has to be generated instead.)
+    { designed: true, band: 'easy', target: [0, 0.05], cols: 6, rows: 5, density: 0.8, lmax: 4, slack: 0.12, slots: 6 },
+    { designed: true, band: 'easy', target: [0.08, 0.25], cols: 7, slots: 6 },
+    { designed: true, band: 'normal', target: [0.25, 0.4], cols: 7, slots: 6, cross: 0.5, intro: 'cross' },
+    { designed: true, band: 'normal', target: [0.4, 0.55], cols: 7, slots: 6, cross: 0.5 },
+    { designed: true, band: 'hard', target: [0.62, 0.75], slots: 6, cross: 0.5 },
+    { designed: true, band: 'normal', target: [0.45, 0.58], cols: 7, slots: 6, cross: 0.5, mystery: 0.4, intro: 'mystery' },
+    { designed: true, band: 'hard', target: [0.58, 0.7], cross: 0.5, mystery: 0.35 },
+    { designed: true, band: 'hard', target: [0.68, 0.8], cross: 0.5, mystery: 0.35 },
+    { designed: true, band: 'hard', target: [0.65, 0.78], cross: 0.5, mystery: 0.3, rotate: 2, intro: 'rotate' },
+    { designed: true, band: 'super', target: [0.86, 0.95], cross: 0.5, mystery: 0.4, rotate: 3 },
+    // levels 11-16: the mechanics again on bigger boxes, then colour mixing
+    { band: 'normal', cols: 7, mystery: 0.4 },
     { band: 'hard', mystery: 0.35, cross: 0.5 },
-    { band: 'normal', cols: 7, rotate: 2, intro: 'rotate' },
+    { band: 'normal', cols: 7, rotate: 2 },
     { band: 'hard', rotate: 3, cross: 0.5 },
     { band: 'hard', cols: 7, mix: true, slack: 0.7, intro: 'mix' },
     { band: 'hard', mix: true, slack: 0.4 },
@@ -624,7 +628,7 @@
   function buildLevel(idx, opts) {
     opts = opts || {};
     const cfg = levelCfg(idx);
-    const band = BANDS[cfg.band];
+    const band = cfg.target || BANDS[cfg.band];
     const runs = opts.runs || 40;
     const maxAttempts = opts.attempts || (cfg.cross ? 120 : 60);
     const t0 = Date.now();
