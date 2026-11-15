@@ -47,7 +47,25 @@
       pageReward: 'Hoàn thành cả trang để nhận {c} xu và +1 mỗi trợ giúp',
       pageClaimed: 'Đã nhận thưởng trang này',
       albumHint: 'Chạm vào tranh đã mở để chơi lại.',
-      done: 'xong', page: 'Trang'
+      done: 'xong', page: 'Trang',
+      // cheat panel (5 taps on the level title)
+      ch_title: 'CHEAT', ch_tabLevel: 'Màn chơi', ch_tabBag: 'Kho đồ', ch_tabSys: 'Hệ thống',
+      ch_box: 'Hộp {c}×{r}', ch_slots: '{n} ô khay', ch_worms: '{n} sâu', ch_colors: '{n} màu', ch_fail: 'bot thua {p}%',
+      ch_band_easy: 'Dễ', ch_band_normal: 'Thường', ch_band_hard: 'Khó', ch_band_super: 'Siêu khó',
+      ch_designed: 'Màn thiết kế', ch_baked: 'Nướng sẵn', ch_generated: 'Sinh tự động',
+      ch_solution: 'Lời giải (số sâu)', ch_noSolve: 'Không tìm ra lời giải',
+      ch_goTo: 'Chọn màn', ch_play: 'Chơi màn {n}', ch_inLevel: 'Trong màn',
+      ch_needLevel: 'Vào một màn để dùng các nút này.',
+      ch_win: 'Thắng', ch_loseRack: 'Thua: kẹt khay', ch_loseStuck: 'Thua: hết nước', ch_restart: 'Chơi lại',
+      ch_hint: 'Gợi ý', ch_pick: 'Kẹp gắp', ch_slot: '+1 ô khay', ch_free: 'miễn phí',
+      ch_auto: 'Tự chơi', ch_off: 'Tắt', ch_autoOne: 'Màn này', ch_autoAll: 'Liên tục',
+      ch_noMiss: 'Chạm nhầm không mất sao', ch_ids: 'Hiện số trên sâu',
+      ch_coins: 'Xu', ch_boosters: 'Trợ giúp', ch_unlockAll: 'Mở khoá + 10 mỗi loại', ch_infinite: 'Trợ giúp vô hạn',
+      ch_speed: 'Tốc độ game', ch_progress: 'Tiến trình', ch_openAll: 'Mở khoá mọi màn', ch_fillAlbum: 'Hoàn thành bộ sưu tập',
+      ch_replayTut: 'Xem lại hướng dẫn', ch_resetAll: 'Xoá tiến trình', ch_sure: 'Chạm lần nữa để xoá',
+      ch_device: 'Thiết bị', ch_levels: '{n} màn có sẵn',
+      ch_msgCoins: 'Xu: {n}', ch_msgOpen: 'Đã mở đến màn {n}', ch_msgAlbum: 'Đã hoàn thành bộ sưu tập',
+      ch_msgTut: 'Hướng dẫn, mẹo và giới thiệu cơ chế sẽ hiện lại', ch_msgBoost: 'Đã mở khoá mọi trợ giúp'
     },
     en: {
       play: 'Play', level: 'Level', next: 'Continue', retry: 'Retry', home: 'Home', resume: 'Resume',
@@ -92,7 +110,24 @@
       pageReward: 'Finish the whole page for {c} coins and +1 of each booster',
       pageClaimed: 'Page reward collected',
       albumHint: 'Tap an unlocked picture to replay it.',
-      done: 'done', page: 'Page'
+      done: 'done', page: 'Page',
+      ch_title: 'CHEAT', ch_tabLevel: 'Level', ch_tabBag: 'Items', ch_tabSys: 'System',
+      ch_box: 'Box {c}×{r}', ch_slots: '{n} tray slots', ch_worms: '{n} worms', ch_colors: '{n} colours', ch_fail: 'bot fails {p}%',
+      ch_band_easy: 'Easy', ch_band_normal: 'Normal', ch_band_hard: 'Hard', ch_band_super: 'Super hard',
+      ch_designed: 'Hand-made', ch_baked: 'Baked', ch_generated: 'Generated',
+      ch_solution: 'Solution (worm numbers)', ch_noSolve: 'No solution found',
+      ch_goTo: 'Pick a level', ch_play: 'Play level {n}', ch_inLevel: 'In this level',
+      ch_needLevel: 'Start a level to use these.',
+      ch_win: 'Win', ch_loseRack: 'Lose: tray', ch_loseStuck: 'Lose: stuck', ch_restart: 'Restart',
+      ch_hint: 'Hint', ch_pick: 'Tongs', ch_slot: '+1 slot', ch_free: 'free',
+      ch_auto: 'Auto-play', ch_off: 'Off', ch_autoOne: 'This level', ch_autoAll: 'Non-stop',
+      ch_noMiss: 'Bumps cost no stars', ch_ids: 'Worm numbers',
+      ch_coins: 'Coins', ch_boosters: 'Boosters', ch_unlockAll: 'Unlock + 10 of each', ch_infinite: 'Endless boosters',
+      ch_speed: 'Game speed', ch_progress: 'Progress', ch_openAll: 'Unlock every level', ch_fillAlbum: 'Complete the collection',
+      ch_replayTut: 'Replay the tutorial', ch_resetAll: 'Reset progress', ch_sure: 'Tap again to erase',
+      ch_device: 'Device', ch_levels: '{n} ready-made levels',
+      ch_msgCoins: 'Coins: {n}', ch_msgOpen: 'Unlocked up to level {n}', ch_msgAlbum: 'Collection complete',
+      ch_msgTut: 'Tutorial, tips and mechanic intros will show again', ch_msgBoost: 'Every booster unlocked'
     }
   };
 

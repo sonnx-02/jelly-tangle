@@ -81,7 +81,9 @@
       claimed: [],              // album pages whose reward was paid
       seenIntro: [],            // mechanic intros already shown
       tips: {},                 // one-time tips already shown
-      settings: { sfx: true, music: true, haptic: true, lang: 'vi', fps: false }
+      settings: { sfx: true, music: true, haptic: true, lang: 'vi', fps: false },
+      // cheat panel switches that last (js/cheat.js): game speed, no lost stars, boosters never used up, worm numbers
+      cheat: { speed: 1, noMiss: false, infinite: false, ids: false }
     };
   }
   const Save = JT.Save = {
@@ -94,11 +96,13 @@
           Save.data = Object.assign(base, d);
           Save.data.boosters = Object.assign(defaults().boosters, d.boosters || {});
           Save.data.settings = Object.assign(defaults().settings, d.settings || {});
+          Save.data.cheat = Object.assign(defaults().cheat, d.cheat || {});
         }
       } catch (e) { Save.data = defaults(); }
     },
     save() { try { localStorage.setItem(KEY, JSON.stringify(Save.data)); } catch (e) { /* storage unavailable */ } },
-    reset() { const s = Save.data.settings; Save.data = defaults(); Save.data.settings = s; Save.save(); },
+    // progress goes, settings and cheat switches stay
+    reset() { const s = Save.data.settings, c = Save.data.cheat; Save.data = defaults(); Save.data.settings = s; Save.data.cheat = c; Save.save(); },
     totalStars() { let n = 0; for (const k in Save.data.stars) n += Save.data.stars[k]; return n; }
   };
 })();

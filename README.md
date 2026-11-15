@@ -61,6 +61,7 @@ js/render.js            nét vẽ Canvas 2D: sâu kẹo dẻo, viên jelly, ô t
 js/fx.js                hạt, chữ bay, xu bay
 js/audio.js             âm thanh và nhạc nền tổng hợp bằng WebAudio (không có file âm thanh), rung
 js/ui.js                trang chủ, HUD, toàn bộ popup
+js/cheat.js             bảng cheat để test (chạm 5 lần vào chữ "Màn N")
 js/main.js              khởi động, vòng lặp, luồng màn hình, kinh tế trong game
 js/i18n.js              chuỗi Tiếng Việt và English
 js/util.js              toán, easing, màu, lưu tiến trình (localStorage)
@@ -103,6 +104,16 @@ Lưu ý: bộ sinh màn từng dùng phép sắp xếp với bộ so sánh ngẫ
 - **Xem số liệu:** bật "Hiện FPS" trong Cài đặt để thấy `fps / Hz trình duyệt cấp / độ phân giải canvas`.
 - **Dark mode của điện thoại:** game chỉ có một bảng màu sáng. `index.html` và `css/style.css` khai báo `color-scheme` để Chrome, Samsung Internet và WebView trong app không tự đổi màu trang.
 
+## Bảng cheat (để test)
+
+Chạm **5 lần liên tiếp** (mỗi lần cách nhau dưới 0,6 giây) vào chữ "Màn N": ở thanh trên cùng khi đang chơi, hoặc ở ruy-băng của thẻ màn ngoài trang chủ. Bảng mở ra như một popup của game và game tạm dừng trong lúc mở.
+
+- **Màn chơi:** thông tin màn đang chọn (tranh, hộp, số ô khay, số sâu, số màu, độ khó, tỉ lệ thua của bot, màn thiết kế hay sinh tự động, cơ chế có trong màn) và **lời giải** theo số thứ tự sâu. Chọn màn bất kỳ (±1, ±10) rồi chơi (đi tới màn sau mức đang mở thì mở khoá luôn tới đó). Trong màn: thắng ngay với 3/2/1 sao, thua ngay (kẹt khay / hết nước), chơi lại, Gợi ý / Kẹp gắp / +1 ô khay miễn phí. **Tự chơi** theo bộ Gợi ý: chỉ màn này, hoặc liên tục từ màn này sang màn khác (tự bấm qua các popup). Công tắc: chạm nhầm không mất sao, hiện số trên sâu (số dùng trong lời giải và trong file màn).
+- **Kho đồ:** cộng / đặt lại xu, thêm bớt từng trợ giúp, mở khoá mọi trợ giúp, trợ giúp vô hạn.
+- **Hệ thống:** tốc độ game (¼× đến 4×), hiện FPS, mở khoá mọi màn, hoàn thành bộ sưu tập, xem lại hướng dẫn (hướng dẫn màn 1, mẹo, giới thiệu cơ chế hiện lại), xoá tiến trình (chạm 2 lần), thông tin thiết bị (web hay APK, kích thước, DPR, Hz).
+
+Các công tắc làm thay đổi cách chơi (tốc độ, không mất sao, trợ giúp vô hạn, số trên sâu) được lưu lại qua các lần mở game, và khi còn bật thì có nhãn tím **CHEAT · …** ở góc phải trên, để không ai nhầm một lượt test với lượt chơi thật.
+
 ## Kiểm thử tự động
 
 Trong console của trang game:
@@ -114,10 +125,12 @@ JT.Debug.tick(t)              // chạy đúng một vòng lặp tại mốc th�
 JT.Game.debug.state()         // trạng thái màn hiện tại
 JT.App.startLevel(8)          // nhảy tới màn 9 (chỉ số tính từ 0)
 JT.Save.reset()               // xoá tiến trình
+JT.Cheat.open()               // mở bảng cheat
+JT.Game.cheat.auto = 2        // tự chơi liên tục (như nút "Liên tục" trong bảng cheat)
 ```
 
 ## Trạng thái
 
-Đã có: 60 màn (10 màn đầu thiết kế tay), 30 tranh trong 5 trang bộ sưu tập, 4 cơ chế nâng cao, 3 trợ giúp, sao, xu, hướng dẫn màn đầu, hai ngôn ngữ, lưu tiến trình.
+Đã có: 60 màn (10 màn đầu thiết kế tay), 30 tranh trong 5 trang bộ sưu tập, 4 cơ chế nâng cao, 3 trợ giúp, sao, xu, hướng dẫn màn đầu, hai ngôn ngữ, lưu tiến trình, bảng cheat để test.
 
 Chưa có: quảng cáo và mua trong ứng dụng (giá xu hiện chỉ để minh hoạ), service worker cho chơi offline, tệp font đóng gói sẵn (đang tải Baloo 2 và Nunito từ Google Fonts).
