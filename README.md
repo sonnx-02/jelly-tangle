@@ -76,7 +76,7 @@ Baloo 2 (700, 800) và Nunito (700, 800, 900) nằm trong `assets/fonts/` dướ
 
 Hộp sâu nằm ngang: 8×6 ô (một số màn 7×6, màn 2 là 7×5, màn 1 là 6×5).
 
-Màn 1–11 là màn thiết kế tay: màn 2 (Cầu vồng) được thiết kế riêng, các màn còn lại lấy từ bộ màn của nhóm (xem "Nướng màn chơi"). Từ màn 12 là màn sinh tự động.
+Màn 1–11 là màn thiết kế tay: màn 2 (Cầu vồng) được thiết kế riêng, các màn còn lại lấy từ bộ màn của nhóm (xem "Nướng màn chơi"). Màn 23 cũng làm tay: chính màn 16 nhưng không pha màu. Các màn khác từ màn 12 trở đi là màn sinh tự động.
 Cơ chế mở dần: sâu nằm đè (màn 4), kẹo bọc giấy (màn 7), sâu chóng mặt (màn 10), pha màu (màn 16).
 Trợ giúp mở dần: Gợi ý (màn 4), Kẹp gắp (màn 6), Thêm ô (màn 8).
 Màn khó có nhãn đỏ "KHÓ"; màn 11 là màn "SIÊU KHÓ" (bot chơi ngẫu nhiên thua khoảng 88%).
@@ -95,7 +95,17 @@ G  .  B^ P  B^ .  G      một sâu lam là đủ cho vòng lam, sâu lam còn l
 
 (`< > ^ v`: đầu sâu và hướng nó đi ra.) Bot chơi ngẫu nhiên thua 5%, khó hơn màn 1 (0%) và dễ hơn màn Mèo cam ngay sau (20%). Lần thua nào cũng rơi vào vòng ngoài cùng, khi khay đã đầy những màu chưa tới lượt, đúng bài học của màn. Lần đầu vào màn có một lời nhắc: dải màu dưới tranh cho biết vòng đang sáng còn cần màu nào.
 
-Cầu vồng nằm ở trang Ngày nắng của bộ sưu tập (trang này có 7 tranh, các trang khác 6) và chỉ chơi ở vòng đầu. Từ vòng thứ hai (màn 32 trở đi), các màn đi lại 30 tranh kia y như trước, chỉ lùi một số. Tiến trình lưu từ trước khi có Cầu vồng được dời theo khi mở game: sao, kỷ lục và màn kế tiếp đi theo đúng màn cũ. Ai mới qua màn 1 sẽ gặp Cầu vồng ngay sau đó; ai đã đi xa hơn thì Cầu vồng mở sẵn trong bộ sưu tập.
+Cầu vồng nằm ở trang Ngày nắng của bộ sưu tập (trang này có 7 tranh, các trang khác 6).
+
+### Màn 23: Kẹo sọc, không pha màu
+
+Bản sao của màn 16 (màn đầu tiên có pha màu): cùng hộp 7×6, khay 5 ô, 12 sâu ở đúng chỗ cũ, cùng hướng đầu và cùng lượng màu. Chỉ khác là sâu mang sẵn màu của tranh (cam, xanh lá, tím) nên không có gì phải pha. Mỗi sâu lấy màu kế tiếp trên vòng màu: sâu đỏ thành cam, sâu vàng thành xanh lá, sâu lam thành tím. Trong sáu cách đổi màu, cách này chơi khó nhất. Bỏ pha màu thì màn nhẹ đi hẳn: bot chơi ngẫu nhiên thua 13% (màn 16 thua 83%), nên màn này là một màn nghỉ giữa màn 22 (33%) và màn 24 (57%).
+
+Tranh vẫn là Kẹo sọc của màn 16, nên màn 23 không có thẻ riêng trong bộ sưu tập: thẻ Kẹo sọc vẫn mở màn 16, và màn 23 mang phông của trang Tiệm bánh.
+
+### Các màn chen vào sau
+
+Cầu vồng và màn 23 chỉ chơi ở vòng đầu. Từ vòng thứ hai (màn 33 trở đi), các màn đi lại 30 tranh kia y như trước. Mọi màn khác vẫn y nguyên, chỉ lùi một số (màn 3–22) hoặc hai số (từ màn 24); bộ sinh màn vẫn dùng số cũ làm seed, nên nướng lại vẫn ra đúng các màn đó. Tiến trình lưu từ trước được dời theo khi mở game: sao, kỷ lục và màn kế tiếp đi theo đúng màn cũ. Ai vừa qua màn ngay trước một màn mới (màn 1 hoặc màn 22) sẽ gặp màn mới đó tiếp theo. Ai đã đi xa hơn thì thấy Cầu vồng mở sẵn trong bộ sưu tập; màn 23 không có thẻ riêng nên người đó đi tiếp mà không gặp nó (vẫn chơi được qua bảng cheat).
 
 ## Cấu trúc
 
@@ -103,7 +113,7 @@ Cầu vồng nằm ở trang Ngày nắng của bộ sưu tập (trang này có 
 index.html              trang duy nhất
 css/style.css           giao diện "tiệm bánh": token màu, HUD, trang chủ, popup (mọi kích thước theo --u = 1% bề ngang cột game)
 js/core.js              luật chơi, bộ sinh màn, solver, bot đo độ khó; không đụng DOM
-js/level-data.js        61 màn có sẵn: 11 màn thiết kế + 50 màn nướng (file sinh ra, không sửa tay)
+js/level-data.js        62 màn có sẵn: 12 màn thiết kế + 50 màn nướng (file sinh ra, không sửa tay)
 js/levels.js            nạp màn: lấy từ dữ liệu nướng, ngoài bảng thì sinh lúc chạy
 js/game.js              màn chơi: hoạt ảnh, nhập liệu, hướng dẫn, trình tự thắng thua
 js/render.js            nét vẽ Canvas 2D: nền giấy, thẻ sứ, hộp sô-cô-la, sâu kẹo dẻo, viên jelly, ô tranh
@@ -135,9 +145,9 @@ Sau khi sửa `LEVELS`, `PICS` hay luật trong `core.js`:
 2. Mở http://localhost:5180/tools/levels.html và bấm **Bake**.
 3. Công cụ ghi lại `js/level-data.js`. Nếu có màn không đạt thì không ghi gì cả.
 
-### Màn thiết kế tay (màn 1–11)
+### Màn thiết kế tay (màn 1–11 và 23)
 
-Màn 1 và 3–11 lấy từ bộ màn của nhóm (file JSON: mỗi màn có mô tả dễ đọc và bản `baked` đúng định dạng `JT.LEVEL_DATA`). Cầu vồng chen vào làm màn 2, nên từ màn 2 của bộ màn trở đi, màn n của bộ màn là màn n + 1 trong game; công cụ nhập tự dời số. Cầu vồng không có trong bộ màn: dữ liệu của nó chỉ nằm trong `js/level-data.js`, sơ đồ và ý đồ thiết kế ghi ở chú thích `LEVELS` trong `js/core.js`. Nhập bộ màn hay **Bake** đều giữ nguyên nó. Nhập bằng:
+Màn 1 và 3–11 lấy từ bộ màn của nhóm (file JSON: mỗi màn có mô tả dễ đọc và bản `baked` đúng định dạng `JT.LEVEL_DATA`). Cầu vồng chen vào làm màn 2, nên từ màn 2 của bộ màn trở đi, màn n của bộ màn là màn n + 1 trong game (từ màn 22 của bộ màn là n + 2, vì có thêm màn 23); công cụ nhập tự dời số. Cầu vồng và màn 23 không có trong bộ màn: dữ liệu của chúng chỉ nằm trong `js/level-data.js`, ý đồ thiết kế ghi ở chú thích `LEVELS` trong `js/core.js`. Nhập bộ màn hay **Bake** đều giữ nguyên chúng. Nhập bằng:
 
 ```
 python tools/import_levels.py duong/dan/jelly_tangle_levels_1-10.json
@@ -145,7 +155,7 @@ python tools/import_levels.py duong/dan/jelly_tangle_levels_1-10.json
 
 - Công cụ kiểm tra bản `baked` khớp với phần mô tả (kích thước hộp, số ô khay, tranh, từng con sâu: màu, lượng màu, ô, hướng đầu, ai đè ai), rồi thay đúng các màn có trong file; các màn khác giữ nguyên.
 - Bộ màn vẽ hộp dọc (5×6, 6×7, 6×8) theo bố cục cũ, nên mỗi màn được **xoay một góc vuông** sang hộp ngang (6×5, 7×6, 8×6), hướng đầu sâu và hướng quay của sâu chóng mặt xoay theo. Câu đố không đổi: solver ra đúng lời giải ghi trong file, tỉ lệ thua của bot trùng khớp tuyệt đối với hộp gốc (cùng seed, 3000 lượt). Muốn giữ hộp dọc thì thêm `--keep-orientation`.
-- `LEVELS[0..10]` trong `js/core.js` mang `designed: true` và `target` (dải tỉ lệ thua trong file). Kích thước hộp, số ô khay và tranh ở đó phải khớp dữ liệu, nếu không game sẽ bỏ dữ liệu và tự sinh màn khác. Khi **Bake**, `tools/levels.html` giữ nguyên các màn `designed` (sau khi giải lại để chắc chúng vẫn qua được) và chỉ sinh lại các màn còn lại.
+- `LEVELS[0..10]` và `LEVELS[22]` trong `js/core.js` mang `designed: true` và `target` (dải tỉ lệ thua trong file). Kích thước hộp, số ô khay và tranh ở đó phải khớp dữ liệu, nếu không game sẽ bỏ dữ liệu và tự sinh màn khác. Khi **Bake**, `tools/levels.html` giữ nguyên các màn `designed` (sau khi giải lại để chắc chúng vẫn qua được) và chỉ sinh lại các màn còn lại.
 
 Lưu ý: bộ sinh màn từng dùng phép sắp xếp với bộ so sánh ngẫu nhiên, khiến cùng một seed có thể ra màn khác nhau tuỳ thời điểm chạy. Bộ so sánh đã được sửa cho nhất quán, và game không còn dựng màn từ seed nữa mà đọc thẳng dữ liệu đã nướng.
 
@@ -237,6 +247,6 @@ JT.Game.cheat.auto = 2        // tự chơi liên tục (như nút "Liên tục"
 
 ## Trạng thái
 
-Đã có: 61 màn (11 màn đầu thiết kế tay), 31 tranh trong 5 trang bộ sưu tập, 4 cơ chế nâng cao, 3 trợ giúp, sao, xu, thời gian và kỷ lục từng màn, hướng dẫn màn đầu, hai ngôn ngữ (mặc định tiếng Anh), lưu tiến trình, giao diện "tiệm bánh" cho người chơi 25–45 tuổi, âm thanh ASMR tổng hợp, con trỏ bàn tay khi chơi bằng chuột, bảng cheat để test, bản Android (APK).
+Đã có: 62 màn (12 màn thiết kế tay), 31 tranh trong 5 trang bộ sưu tập, 4 cơ chế nâng cao, 3 trợ giúp, sao, xu, thời gian và kỷ lục từng màn, hướng dẫn màn đầu, hai ngôn ngữ (mặc định tiếng Anh), lưu tiến trình, giao diện "tiệm bánh" cho người chơi 25–45 tuổi, âm thanh ASMR tổng hợp, con trỏ bàn tay khi chơi bằng chuột, bảng cheat để test, bản Android (APK).
 
 Chưa có: quảng cáo và mua trong ứng dụng (giá xu hiện chỉ để minh hoạ), service worker để bản web chơi offline (bản Android đã chơi offline được).

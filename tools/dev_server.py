@@ -16,8 +16,8 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 OUT = ROOT / "js" / "level-data.js"
 HEADER = (
     "/* Baked levels, do not edit by hand. Levels marked designed: true in js/core.js are hand-made: the level\n"
-    "   designers' sheet (tools/import_levels.py) and level 2, the rainbow (drawn in js/core.js). tools/levels.html keeps\n"
-    "   those and generates the rest.\n"
+    "   designers' sheet (tools/import_levels.py), level 2, the rainbow, and level 23, level 16 without mixing (both\n"
+    "   described in js/core.js). tools/levels.html keeps those and generates the rest.\n"
     "   Each entry is one validated level (solvable, bot fail rate inside its band).\n"
     "   Format per worm: [colour, paint, dir, cells \"xyxy…\", layers, coveredBy, wrapped, dizzy]. */\n"
 )

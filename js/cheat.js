@@ -294,8 +294,8 @@
         say(T('ch_msgOpen', { n: d.level + 1 }));
         break;
       case 'fillAlbum':
-        C.ALBUM_ORDER.forEach((k, i) => { if (!d.album.includes(k)) d.album.push(k); d.stars[i] = 3; });
-        d.level = Math.max(d.level, C.ALBUM_ORDER.length); Save.save(); refreshHome();
+        C.LEVEL_ORDER.forEach((k, i) => { if (!d.album.includes(k)) d.album.push(k); d.stars[i] = 3; });
+        d.level = Math.max(d.level, C.LEVEL_ORDER.length); Save.save(); refreshHome();
         say(T('ch_msgAlbum'));
         break;
       case 'replayTut':

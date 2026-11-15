@@ -11,7 +11,8 @@ fail rate. --keep-orientation stores the boxes as they are in the sheet.
     python tools/import_levels.py path/to/levels.json [--keep-orientation] [--dry-run]
 
 Each sheet level replaces the js/level-data.js entry of its game level; every other entry is kept. The game has levels
-the sheet does not (NOT_IN_SHEET: the rainbow went in as level 2), so from there on sheet level n is game level n + 1.
+the sheet does not (NOT_IN_SHEET: the rainbow went in as level 2, level 16 without mixing as level 23), so from level 2
+on, sheet level n is game level n + 1 (n + 2 from game level 23 on).
 js/core.js must describe the same boxes (LEVELS[i]: cols, rows, slots, pic, mix) or the game rejects the data and
 generates a level instead, so the script prints the box each level needs. Mark those LEVELS entries designed: true so
 that tools/levels.html keeps them when it re-bakes the generated levels.
@@ -26,7 +27,7 @@ from dev_server import OUT, write_level_data  # noqa: E402
 
 DIR_NAMES = ["up", "right", "down", "left"]          # core.js DIRS order
 PALETTE = set("ROYGLBSTPKWCNDA")
-NOT_IN_SHEET = [2]                                   # game levels (1-based) made outside the sheet: the rainbow
+NOT_IN_SHEET = [2, 23]                               # game levels (1-based) made outside the sheet, in order
 
 
 def game_level(n):

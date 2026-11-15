@@ -74,9 +74,13 @@
 
   // ---------- save data ----------
   const KEY = 'jellytangle.v1';
+  // Levels that went in after players had saves, as [the save version that has it, its index]: the rainbow as level
+  // 2, then level 16 without mixing as level 23. A save from before one moves past it on load (insertLevel).
+  const INSERTED = [[2, 1], [3, 22]];
+  const VERSION = 3;
   function defaults() {
     return {
-      v: 2,                     // level numbering: 2 = with the rainbow as level 2 (see load)
+      v: VERSION,               // level numbering (INSERTED)
       level: 0,                 // next level to play (0-based)
       coins: 100,
       boosters: { hint: 0, pick: 0, slot: 0 },
@@ -114,9 +118,13 @@
           // saves from before English became the default all hold lang: 'vi', picked or not: keep only a picked one
           if (!Save.data.settings.langPicked) Save.data.settings.lang = 'en';
           Save.data.cheat = Object.assign(defaults().cheat, d.cheat || {});
-          // a save without v is from before the rainbow went in as level 2: every level after the first is one
-          // number higher now, so stars, best times and the next level move up with them
-          if (!(d.v >= 2)) { insertLevel(Save.data, 1); Save.data.v = 2; Save.save(); }
+          // a save from before a level went in (no v: before the rainbow): the levels after it are one number higher
+          // now, so stars, best times and the next level move up with them
+          const v = d.v || 1;
+          if (v < VERSION) {
+            for (const [since, at] of INSERTED) if (v < since) insertLevel(Save.data, at);
+            Save.data.v = VERSION; Save.save();
+          }
         }
       } catch (e) { Save.data = defaults(); }
     },

@@ -285,14 +285,14 @@
   UI.album = function (page) {
     const d = Save.data;
     // the page of the picture you play next (pages differ in size: Sunny Day has 7); after the first lap, the last page
-    const curKey = C.ALBUM_ORDER[Math.min(d.level, C.ALBUM_ORDER.length - 1)];
+    const curKey = C.LEVEL_ORDER[Math.min(d.level, C.LEVEL_ORDER.length - 1)];
     const curPg = C.ALBUM.findIndex(p => p.pics.includes(curKey));
     if (page === undefined) page = curPg;
     const pg = C.ALBUM[page], en = JT.I18n.lang() === 'en';
     const done = pg.pics.filter(k => d.album.includes(k)).length, claimed = d.claimed.includes(pg.key);
     const starRow = n => [0, 1, 2].map(i => ICON.star.replace('<svg ', '<svg ' + (i < n ? '' : 'class="dim" '))).join('');
     const cards = pg.pics.map(k => {
-      const li = C.ALBUM_ORDER.indexOf(k), pic = C.PICS[k], got = d.album.includes(k), locked = li > d.level;
+      const li = C.LEVEL_ORDER.indexOf(k), pic = C.PICS[k], got = d.album.includes(k), locked = li > d.level;   // the picture's first level
       return '<button class="pcard' + (locked ? ' locked' : '') + (li === d.level ? ' cur' : '') + '" data-li="' + li + '"><canvas width="132" height="132" data-k="' + k + '" data-p="' + (got ? 1 : locked ? 0 : 'g') + '"></canvas>' +   // open but not made yet (the next level, or the rainbow on a save from before it): its ghost
         (locked ? '<span class="lock">' + ICON.lock + '</span>' : '') +
         '<div class="nm">' + (locked ? '???' : (en ? pic.en : pic.name)) + '</div>' +
