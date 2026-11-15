@@ -1,5 +1,7 @@
-/* Cheat panel, for testing. Tap a level title ("Level N" / "Màn N": the level pill in a level, or the ribbon on the
-   home card) five times in a row to open it.
+/* Cheat panel, for testing. Only the dev build loads this file: dev/index.html (tools/make_dev.py) and the dev APK
+   (tools/android/build_apk.py --dev). The product build, index.html and the plain APK, has no cheat panel at all.
+   Tap a level title ("Level N" / "Màn N": the level pill in a level, or the ribbon on the home card) five times in a
+   row to open it.
      Level   what the level is made of and its solution, jump to any level, win or lose on the spot, free boosters,
              auto-play with the hint planner (this level, or level after level), no lost stars, worm numbers
      Items   coins and boosters, endless boosters
@@ -213,7 +215,7 @@
 
   // ---------- tab: system ----------
   function sysTab() {
-    const A = JT.App, apk = /JellyTangleApp\/([\w.]+)/.exec(navigator.userAgent);
+    const A = JT.App, apk = /JellyTangleApp\/([\w.-]+)/.exec(navigator.userAgent);   // "1.1.9-dev" in the dev APK
     return head('ch_speed') +
       seg('speed', SPEEDS, A.speed, speedLabel) +
       sw('fps', Save.data.settings.fps, T('showFps')) +

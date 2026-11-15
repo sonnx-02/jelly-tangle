@@ -2,7 +2,7 @@
 
 Puzzle game cho mobile web (GameJam 2026). Gỡ những bé sâu kẹo dẻo ra khỏi hộp sô-cô-la, cho chúng nhảy lên khay và phun màu lấp đầy bức tranh jelly.
 
-**Chơi ngay:** https://sonnx-02.github.io/jelly-tangle/
+**Chơi ngay:** https://sonnx-02.github.io/jelly-tangle/ (bản dev có bảng cheat: https://sonnx-02.github.io/jelly-tangle/dev/)
 
 Đây là bản làm lại hoàn toàn về hình ảnh và cảm giác chơi của prototype **Hose Out**, giữ nguyên bộ luật gốc. Tên "Jelly Tangle" là tên tạm, đổi ở `index.html`, `manifest.webmanifest` và logo trong `js/ui.js`.
 
@@ -22,6 +22,25 @@ python -m http.server 5180
 
 Mở thẳng `index.html` bằng trình duyệt cũng chạy được.
 
+### Hai bản: product và dev
+
+Game có hai bản, dùng chung toàn bộ file:
+
+| | Product (cho người chơi, BTC) | Dev (để test) |
+|---|---|---|
+| Web | `index.html`: https://sonnx-02.github.io/jelly-tangle/ | `dev/index.html`: https://sonnx-02.github.io/jelly-tangle/dev/ |
+| APK | `JellyTangle-<bản>.apk`, app "Jelly Tangle" | `JellyTangle-<bản>-dev.apk`, app "Jelly Tangle Dev" |
+| Bảng cheat | không có: `js/cheat.js` không được nạp (APK product không chứa file này), công tắc cheat còn sót trong bản lưu cũ cũng không có tác dụng | có (chạm 5 lần vào "Level N") |
+| Tiến trình | bản lưu thật | bản lưu riêng: trên web lưu ở khoá khác (`jellytangle.dev.v1`), APK dev là một app khác, nên test không đụng đến bản lưu thật |
+
+`dev/index.html` được sinh ra từ `index.html` (thêm `<base href="../">`, cờ `window.JT_DEV` và `js/cheat.js`), đừng sửa tay. Sửa `index.html` xong thì chạy lại:
+
+```bash
+python tools/make_dev.py
+```
+
+`python tools/make_dev.py --check` báo lỗi nếu `dev/index.html` chưa khớp `index.html`. Chạy server dev ở trên thì bản dev nằm ở http://localhost:5180/dev/.
+
 ### Đưa lên web
 
 Bản đang chạy nằm trên GitHub Pages của repo này (Settings → Pages → Deploy from a branch → `main` / root). Mỗi lần đẩy lên `main`, GitHub tự build lại sau khoảng một phút:
@@ -38,15 +57,21 @@ Repo là một trang tĩnh nên cũng đẩy nguyên thư mục lên được Ne
 python tools/android/build_apk.py
 ```
 
-Ra file `dist/JellyTangle-1.1.8-debug.apk` (khoảng 300 KB, phần lớn là font và ảnh bàn tay). Script dùng thẳng công cụ của Android SDK (aapt2, javac, d8, zipalign, apksigner), không qua Gradle nên không tải thêm gì. SDK và JDK 17 lấy từ `ANDROID_HOME` / `JAVA_HOME`; nếu không đặt, script tự tìm trong bản Unity có cài Android Build Support (`C:\Program Files\Unity\Hub\Editor\<bản>\...\AndroidPlayer`).
+```bash
+python tools/android/build_apk.py --dev
+```
 
-Cài lên máy: cắm điện thoại rồi chạy `adb install -r dist/JellyTangle-1.1.8-debug.apk`, hoặc chép file APK sang máy và mở (cho phép "cài ứng dụng không rõ nguồn gốc"). Khoá debug nằm ở `tools/android/keys/` (không đưa lên git) và được dùng lại, nên bản build sau cài đè lên bản trước được.
+Lệnh đầu ra bản product `dist/JellyTangle-1.1.9.apk` (khoảng 300 KB, phần lớn là font và ảnh bàn tay), lệnh sau ra bản dev `dist/JellyTangle-1.1.9-dev.apk`. Bản dev là một app khác (`vn.sonat.jellytangle.dev`, tên "Jelly Tangle Dev", phiên bản "1.1.9-dev") nên cài song song với bản product trên cùng một máy, mỗi bản giữ tiến trình riêng. Script dùng thẳng công cụ của Android SDK (aapt2, javac, d8, zipalign, apksigner), không qua Gradle nên không tải thêm gì. SDK và JDK 17 lấy từ `ANDROID_HOME` / `JAVA_HOME`; nếu không đặt, script tự tìm trong bản Unity có cài Android Build Support (`C:\Program Files\Unity\Hub\Editor\<bản>\...\AndroidPlayer`).
+
+Cài lên máy: cắm điện thoại rồi chạy `adb install -r dist/JellyTangle-1.1.9.apk`, hoặc chép file APK sang máy và mở (cho phép "cài ứng dụng không rõ nguồn gốc"). Cả hai bản ký bằng khoá debug nằm ở `tools/android/keys/` (không đưa lên git) và được dùng lại, nên bản build sau cài đè lên bản trước được (các bản cũ tên `...-debug.apk` cũng là bản product, cài đè được).
 
 Bản phát hành ký bằng khoá riêng của bạn (mật khẩu truyền qua biến môi trường, không ghi ra dòng lệnh):
 
 ```bash
 JT_KEYSTORE=path/to/release.jks JT_KEY_ALIAS=jellytangle JT_STORE_PASS=... JT_KEY_PASS=... python tools/android/build_apk.py --release
 ```
+
+File ký bằng khoá riêng có thêm đuôi `-release` (`dist/JellyTangle-1.1.9-release.apk`).
 
 Đổi phiên bản ở `VERSION_CODE` / `VERSION_NAME` đầu `tools/android/build_apk.py` (mỗi bản đưa lên cửa hàng cần `VERSION_CODE` tăng lên).
 
@@ -110,7 +135,8 @@ Cầu vồng và màn 23 chỉ chơi ở vòng đầu. Từ vòng thứ hai (mà
 ## Cấu trúc
 
 ```
-index.html              trang duy nhất
+index.html              trang game, bản product (không có bảng cheat)
+dev/index.html          trang bản dev, sinh từ index.html bằng tools/make_dev.py (không sửa tay)
 css/style.css           giao diện "tiệm bánh": token màu, HUD, trang chủ, popup (mọi kích thước theo --u = 1% bề ngang cột game)
 js/core.js              luật chơi, bộ sinh màn, solver, bot đo độ khó; không đụng DOM
 js/level-data.js        62 màn có sẵn: 12 màn thiết kế + 50 màn nướng (file sinh ra, không sửa tay)
@@ -120,7 +146,7 @@ js/render.js            nét vẽ Canvas 2D: nền giấy, thẻ sứ, hộp sô
 js/fx.js                hạt, chữ bay, xu bay
 js/audio.js             âm thanh ASMR và nhạc nền, dựng từng mẫu bằng JavaScript (không có file âm thanh), rung
 js/ui.js                trang chủ, HUD, toàn bộ popup
-js/cheat.js             bảng cheat để test (chạm 5 lần vào chữ "Level N" / "Màn N")
+js/cheat.js             bảng cheat để test, chỉ bản dev nạp (chạm 5 lần vào chữ "Level N" / "Màn N")
 js/cursor.js            bàn tay hướng dẫn làm con trỏ chuột khi chơi
 js/main.js              khởi động, vòng lặp, luồng màn hình, kinh tế trong game
 js/i18n.js              chuỗi English (mặc định) và Tiếng Việt
@@ -128,8 +154,9 @@ js/util.js              toán, easing, màu, lưu tiến trình (localStorage)
 tools/levels.html       công cụ nướng màn
 tools/import_levels.py  nhập bộ màn thiết kế (file JSON) vào js/level-data.js
 tools/dev_server.py     server dev
+tools/make_dev.py       sinh dev/index.html (bản dev) từ index.html
 tools/fetch_fonts.py    tải font về assets/fonts và viết css/fonts.css
-tools/android/          build_apk.py: dựng file APK
+tools/android/          build_apk.py: dựng file APK (bản product, hoặc --dev cho bản dev)
 android/                bản Android: AndroidManifest, MainActivity (WebView), icon, màn chờ
 ```
 
@@ -221,7 +248,9 @@ Nhạc nền là đàn kalimba chậm (84 bpm) trên nền bass sin mềm, đi q
 
 ## Bảng cheat (để test)
 
-Chạm **5 lần liên tiếp** (mỗi lần cách nhau dưới 0,6 giây) vào chữ "Level N" ("Màn N" khi chơi tiếng Việt): ở thanh trên cùng khi đang chơi, hoặc ở ruy-băng của thẻ màn ngoài trang chủ. Bản web và bản APK đều có bảng này. Bảng mở ra như một popup của game và game tạm dừng trong lúc mở.
+Chỉ **bản dev** có bảng này: web ở https://sonnx-02.github.io/jelly-tangle/dev/ và APK `JellyTangle-<bản>-dev.apk` (xem "Hai bản: product và dev"). Bản product cho người chơi và BTC không có cheat.
+
+Chạm **5 lần liên tiếp** (mỗi lần cách nhau dưới 0,6 giây) vào chữ "Level N" ("Màn N" khi chơi tiếng Việt): ở thanh trên cùng khi đang chơi, hoặc ở ruy-băng của thẻ màn ngoài trang chủ. Bảng mở ra như một popup của game và game tạm dừng trong lúc mở.
 
 - **Màn chơi:** thông tin màn đang chọn (tranh, hộp, số ô khay, số sâu, số màu, độ khó, tỉ lệ thua của bot, màn thiết kế hay sinh tự động, cơ chế có trong màn) và **lời giải** theo số thứ tự sâu. Chọn màn bất kỳ (±1, ±10) rồi chơi (đi tới màn sau mức đang mở thì mở khoá luôn tới đó), hoặc **mở khoá mọi màn** một lần, để bộ sưu tập mở hết các thẻ (nút này có cả ở tab Hệ thống). Trong màn: thắng ngay với 3/2/1 sao, thua ngay (kẹt khay / hết nước), chơi lại, Gợi ý / Kẹp gắp / +1 ô khay miễn phí. **Tự chơi** theo bộ Gợi ý: chỉ màn này, hoặc liên tục từ màn này sang màn khác (tự bấm qua các popup). Công tắc: chạm nhầm không mất sao, hiện số trên sâu (số dùng trong lời giải và trong file màn).
 - **Kho đồ:** cộng / đặt lại xu, thêm bớt từng trợ giúp, mở khoá mọi trợ giúp, trợ giúp vô hạn.

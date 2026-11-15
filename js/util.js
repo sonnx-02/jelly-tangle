@@ -73,7 +73,9 @@
   };
 
   // ---------- save data ----------
-  const KEY = 'jellytangle.v1';
+  // the dev build (window.JT_DEV: dev/index.html, the dev APK) keeps its own progress, so a test never touches the
+  // real save of the product build on the same browser
+  const KEY = window.JT_DEV ? 'jellytangle.dev.v1' : 'jellytangle.v1';
   // Levels that went in after players had saves, as [the save version that has it, its index]: the rainbow as level
   // 2, then level 16 without mixing as level 23. A save from before one moves past it on load (insertLevel).
   const INSERTED = [[2, 1], [3, 22]];

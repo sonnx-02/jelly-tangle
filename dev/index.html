@@ -1,0 +1,99 @@
+<!doctype html>
+<!-- Made by tools/make_dev.py from index.html: do not edit by hand. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<base href="../">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Jelly Tangle · Dev</title>
+<meta name="description" content="Pull the gummy worms out of the chocolate box and fill in the jelly picture. A puzzle game for the mobile web.">
+<!-- The game has one fixed candy palette. Browsers that auto-darken light pages when the phone is in dark mode
+     (Chrome "Auto Dark Theme", Samsung Internet, Android in-app WebViews) skip pages that say they handle both
+     schemes; css/style.css then pins the page to light. -->
+<meta name="color-scheme" content="light dark">
+<meta name="darkreader-lock">
+<meta name="theme-color" content="#f6ebe0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icon.svg">
+<!-- fonts ship with the game (tools/fetch_fonts.py): no request to another site, works offline and in the Android app.
+     The Latin and Vietnamese files are preloaded so the first screen already draws in the right typeface. -->
+<link rel="preload" href="assets/fonts/Baloo2-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/Baloo2-vietnamese.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/Nunito-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/Nunito-vietnamese.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/fonts.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="world" aria-label="Jelly Tangle"></canvas>
+
+  <!-- home -->
+  <section id="home" class="screen">
+    <div class="homeTop">
+      <button class="rbtn" id="hSettings" aria-label="Settings"></button>
+      <div class="pill starPill"><i class="starIco"></i><span id="hStars">0</span></div>
+      <div class="pill coinPill"><i class="coinIco"></i><span class="coinVal">0</span></div>
+    </div>
+    <h1 class="logo" id="logo" aria-label="Jelly Tangle"><span class="w1">Jelly</span><span class="w2">Tangle</span></h1>
+    <p class="tagline" id="hTag"></p>
+    <div class="levelCard" id="levelCard">
+      <div class="ribbon" id="hLevel"></div>
+      <canvas id="hPic" width="264" height="264"></canvas>
+      <div class="picName" id="hPicName"></div>
+      <div class="picPage" id="hPage"></div>
+    </div>
+    <button class="btn green big pulse" id="hPlay"></button>
+    <button class="navBtn" id="hAlbum"><span class="nico"></span><b id="hAlbumTxt"></b><i id="hAlbumN"></i></button>
+  </section>
+
+  <!-- in-game HUD -->
+  <section id="hud" class="screen hidden">
+    <header id="topbar">
+      <!-- one menu for settings, replay and home: the pause popup holds all three -->
+      <button class="rbtn" id="btnPause" aria-label="Menu"></button>
+      <div id="levelPill"><b id="lvlText"></b><span id="lvlName"></span></div>
+      <div class="pill coinPill"><i class="coinIco"></i><span class="coinVal">0</span></div>
+    </header>
+    <div id="toast"></div>
+    <footer id="bottombar">
+      <div class="boosters">
+        <button class="booster" data-b="hint"><span class="bico"></span><span class="bcount"></span><span class="block"></span></button>
+        <button class="booster" data-b="pick"><span class="bico"></span><span class="bcount"></span><span class="block"></span></button>
+        <button class="booster" data-b="slot"><span class="bico"></span><span class="bcount"></span><span class="block"></span></button>
+      </div>
+    </footer>
+  </section>
+
+  <div id="banner"><span id="bannerText"></span></div>
+  <div id="modal" class="modal"><div class="card" id="card"></div></div>
+  <div id="curtain"></div>
+  <canvas id="fx"></canvas>
+  <div id="fps" class="hidden"></div>
+  <div id="cheatBadge" class="hidden"></div>
+  <canvas id="glove" aria-hidden="true"></canvas>
+  <div id="boot"><div class="bootLogo">Jelly<span>Tangle</span></div><div class="bootDots"><i></i><i></i><i></i></div></div>
+</div>
+
+<script>window.JT_DEV = true;</script>
+<script src="js/util.js"></script>
+<script src="js/core.js"></script>
+<script src="js/level-data.js"></script>
+<script src="js/levels.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/render.js"></script>
+<script src="js/fx.js"></script>
+<script src="js/game.js"></script>
+<script src="js/ui.js"></script>
+<!-- the product build: no cheat panel. The dev build (dev/index.html, made from this page by tools/make_dev.py)
+     adds js/cheat.js here. -->
+<script src="js/cheat.js"></script>
+<script src="js/cursor.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

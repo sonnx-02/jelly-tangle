@@ -10,13 +10,18 @@ the Android SDK's own command-line tools, so there is no Gradle project and noth
 
 Usage (from anywhere):
 
-    python tools/android/build_apk.py                  # debug-signed, for testing and sharing by hand
-    python tools/android/build_apk.py --release        # signed with your own key (see --help)
+    python tools/android/build_apk.py                  # the product build: no cheat panel  -> dist/JellyTangle-<v>.apk
+    python tools/android/build_apk.py --dev            # the dev build, with the cheat panel -> dist/JellyTangle-<v>-dev.apk
+    python tools/android/build_apk.py --release        # signed with your own key (see --help): ...-release.apk
+
+The product build leaves js/cheat.js out. The dev build starts from index.html made into the dev page
+(tools/make_dev.py: the cheat panel, its own saved progress) and installs beside the product app as another app,
+"Jelly Tangle Dev" (vn.sonat.jellytangle.dev, version "<v>-dev"), so both can be on one phone.
 
 The SDK and JDK are found from ANDROID_HOME / ANDROID_SDK_ROOT and JAVA_HOME, or else from a Unity editor that has
 Android support installed (C:\\Program Files\\Unity\\Hub\\Editor\\<version>\\...\\AndroidPlayer). Output goes to
-dist/JellyTangle-<version>.apk. The debug key is kept in tools/android/keys/ (git-ignored) and reused, so a new build
-installs over the previous one without uninstalling.
+dist/. Builds are signed with the debug key unless --release; it is kept in tools/android/keys/ (git-ignored) and
+reused, so a new build installs over the previous one without uninstalling.
 """
 import argparse
 import os
@@ -31,10 +36,13 @@ ANDROID = ROOT / "android"
 BUILD = ROOT / "tools" / "android" / "build"
 KEYS = ROOT / "tools" / "android" / "keys"
 DIST = ROOT / "dist"
+sys.path.insert(0, str(ROOT / "tools"))
+from make_dev import dev_html  # noqa: E402
 
 APP_ID = "vn.sonat.jellytangle"
-VERSION_CODE = 12
-VERSION_NAME = "1.1.8"
+DEV_ID, DEV_NAME = APP_ID + ".dev", "Jelly Tangle Dev"   # the dev build: another app, its own progress
+VERSION_CODE = 13
+VERSION_NAME = "1.1.9"
 MIN_SDK = 26          # Android 8.0: adaptive vector icons, no bitmap fallbacks needed
 TARGET_SDK = 35       # Android 15
 WEB_FILES = ["index.html", "manifest.webmanifest", "css", "js", "assets"]
@@ -109,10 +117,14 @@ def run(cmd, env=None):
 
 def main():
     ap = argparse.ArgumentParser(description="Build the Jelly Tangle APK.")
+    ap.add_argument("--dev", action="store_true",
+                    help="the dev build: with the cheat panel, installed beside the product app as '%s'" % DEV_NAME)
     ap.add_argument("--release", action="store_true",
                     help="sign with your own key: set JT_KEYSTORE, JT_KEY_ALIAS, JT_STORE_PASS and JT_KEY_PASS")
     ap.add_argument("--platform", type=int, default=TARGET_SDK, help="android.jar API level to compile against")
     args = ap.parse_args()
+    app_id = DEV_ID if args.dev else APP_ID
+    version_name = VERSION_NAME + ("-dev" if args.dev else "")
 
     sdk, jdk = find_sdk(), find_jdk()
     bt = newest(sdk / "build-tools")
@@ -134,23 +146,36 @@ def main():
     for d in ("assets/www", "gen", "classes", "dex"):
         (BUILD / d).mkdir(parents=True, exist_ok=True)
 
-    print("1/6 game files")
+    print("1/6 game files (%s)" % ("dev build, with the cheat panel" if args.dev else "product build, no cheat panel"))
     www = BUILD / "assets" / "www"
     for name in WEB_FILES:
         src = ROOT / name
         if src.is_dir():
-            shutil.copytree(src, www / name)
+            shutil.copytree(src, www / name, ignore=None if args.dev else shutil.ignore_patterns("cheat.js"))
         else:
             shutil.copy2(src, www / name)
+    if args.dev:
+        # the APK opens www/index.html, so the dev page goes there (no <base>: it is not one folder down here)
+        (www / "index.html").write_text(dev_html((ROOT / "index.html").read_text(encoding="utf-8")), encoding="utf-8", newline="\n")
 
     print("2/6 resources")
     res_zip = BUILD / "res.zip"
     run([aapt2, "compile", "--dir", ANDROID / "res", "-o", res_zip])
+    overlay = []
+    if args.dev:
+        # the dev app's name, laid over android/res/values/strings.xml
+        values = BUILD / "res-dev" / "values"
+        values.mkdir(parents=True)
+        (values / "strings.xml").write_text('<?xml version="1.0" encoding="utf-8"?>\n<resources>\n'
+                                            '    <string name="app_name">%s</string>\n</resources>\n' % DEV_NAME, encoding="utf-8")
+        dev_zip = BUILD / "res-dev.zip"
+        run([aapt2, "compile", "--dir", BUILD / "res-dev", "-o", dev_zip])
+        overlay = ["-R", dev_zip]
     base_apk = BUILD / "base.apk"
     run([aapt2, "link", "-o", base_apk, "-I", android_jar, "--manifest", ANDROID / "AndroidManifest.xml",
-         "-A", BUILD / "assets", "--java", BUILD / "gen", "--rename-manifest-package", APP_ID,
+         "-A", BUILD / "assets", "--java", BUILD / "gen", "--rename-manifest-package", app_id,
          "--min-sdk-version", MIN_SDK, "--target-sdk-version", TARGET_SDK,
-         "--version-code", VERSION_CODE, "--version-name", VERSION_NAME, "--auto-add-overlay", res_zip])
+         "--version-code", VERSION_CODE, "--version-name", version_name, "--auto-add-overlay", res_zip] + overlay)
 
     print("3/6 compile")
     sources = sorted(str(p) for p in (ANDROID / "src").rglob("*.java")) + sorted(str(p) for p in (BUILD / "gen").rglob("*.java"))
@@ -178,16 +203,16 @@ def main():
         # passwords travel through the environment, never the command line
         sign_env = dict(os.environ)
         store_pass, key_pass = "env:JT_STORE_PASS", "env:JT_KEY_PASS"
-        suffix = ""
+        suffix = "-release"
     else:
         KEYS.mkdir(parents=True, exist_ok=True)
         ks, alias = KEYS / "debug.keystore", "androiddebugkey"
         if not ks.exists():
             run([keytool, "-genkeypair", "-keystore", ks, "-storepass", "android", "-keypass", "android", "-alias", alias,
                  "-keyalg", "RSA", "-keysize", "2048", "-validity", "10000", "-dname", "CN=Android Debug,O=Android,C=US"])
-        sign_env, store_pass, key_pass, suffix = None, "pass:android", "pass:android", "-debug"
+        sign_env, store_pass, key_pass, suffix = None, "pass:android", "pass:android", ""
     DIST.mkdir(exist_ok=True)
-    out = DIST / ("JellyTangle-%s%s.apk" % (VERSION_NAME, suffix))
+    out = DIST / ("JellyTangle-%s%s%s.apk" % (VERSION_NAME, "-dev" if args.dev else "", suffix))
     run([java, "-jar", apksigner_jar, "sign", "--ks", ks, "--ks-key-alias", alias, "--ks-pass", store_pass,
          "--key-pass", key_pass, "--out", out, aligned], env=sign_env)
     run([java, "-jar", apksigner_jar, "verify", out])

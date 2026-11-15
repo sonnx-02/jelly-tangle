@@ -14,7 +14,9 @@
   // scale: the most device pixels per CSS pixel the canvases may use; the frame meter below can lower it.
   // speed: game time per real time (the cheat panel's slow motion / fast forward)
   const App = JT.App = { W: 0, H: 0, state: 'boot', cur: 0, scale: 2.5, speed: 1, COST: { slot: 100, pick: 120 }, PAGE_COINS: 150 };
-  const infinite = () => !!(Save.data.cheat && Save.data.cheat.infinite);   // cheat: boosters are never used up
+  // cheat: boosters are never used up. Only with the cheat panel (the dev build): in the product build a switch left on
+  // in an old save does nothing
+  const infinite = () => !!(JT.Cheat && Save.data.cheat && Save.data.cheat.infinite);
   let world, wctx, fx, fctx, fpsEl, last = 0, bgCv = null, homeT = 0, fxDirty = false, fxShown = true;
 
   App.resize = function () {
@@ -95,7 +97,7 @@
   // are late it lowers the canvas resolution one notch, and keeps the change only if that actually helped.
   const RATES = [30, 45, 48, 50, 60, 72, 75, 90, 100, 120, 144, 165, 240];
   const pace = { buf: new Float32Array(120), n: 0, i: 0, best: Infinity, mode: 'watch', lateBefore: 0, prevScale: 0, evalAt: 0, fps: 0, hz: 0 };
-  const cfgFps = () => !!Save.data.settings.fps;
+  const cfgFps = () => !!(JT.Cheat && Save.data.settings.fps);   // the FPS meter is a cheat panel switch (dev build)
   function paceReset(now, hold) { pace.n = 0; pace.i = 0; pace.evalAt = now + (hold || 0); }
   function setScale(v, now) { App.scale = v; App.resize(); paceReset(now, 1200); }
   function paceFrame(now, raw) {
