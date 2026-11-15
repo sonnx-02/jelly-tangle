@@ -293,6 +293,14 @@ canvas#fx { pointer-events: none; z-index: 40; }
 .pcard.locked canvas { opacity: .5; }
 .pcard .lock { position: absolute; left: 50%; top: 36%; width: calc(var(--u) * 8); height: calc(var(--u) * 8); margin: calc(var(--u) * -4); color: var(--ink2); }
 .pcard.cur { box-shadow: 0 0 0 calc(var(--u) * .7) var(--rose), 0 calc(var(--u) * .8) calc(var(--u) * 2) rgba(80,48,36,.12); }
+/* a page with more than 6 pictures (Sunny Day has 7): 4 to a row and the last row centred, so it stays 2 rows tall */
+.grid.wide { display: flex; flex-wrap: wrap; justify-content: center; }
+.grid.wide .pcard { width: calc((100% - var(--u) * 7.8) / 4); padding: calc(var(--u) * 1.4) calc(var(--u) * 1.4) calc(var(--u) * 1.1); border-radius: calc(var(--u) * 3.4); }
+.grid.wide .pcard .nm { margin-top: calc(var(--u) * 1); font-size: calc(var(--u) * 2.7); }
+.grid.wide .pcard .st { height: calc(var(--u) * 3.6); }
+.grid.wide .pcard .st svg { width: calc(var(--u) * 3.6); height: calc(var(--u) * 3.6); }
+.grid.wide .pcard .st span { font-size: calc(var(--u) * 2.7); line-height: calc(var(--u) * 3.6); }
+.grid.wide .pcard .lock { width: calc(var(--u) * 6.4); height: calc(var(--u) * 6.4); margin: calc(var(--u) * -3.2); }
 .pageDots { display: flex; justify-content: center; gap: calc(var(--u) * 1.8); }
 .pageDots i { width: calc(var(--u) * 2.2); height: calc(var(--u) * 2.2); border-radius: 50%; background: var(--oat); transition: transform .2s; }
 .pageDots i.on { background: var(--rose); transform: scale(1.3); }

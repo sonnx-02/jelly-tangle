@@ -12,9 +12,10 @@
 <p>For each level this searches generator attempts until one is solvable and its random-bot fail rate sits in the level's band
 (easy 0–25%, normal 25–55%, hard 55–85%, super 85–95%, or the level's own <code>target</code>). The exact level is then stored
 as data, re-loaded, and solved again to prove the stored copy is the level that was tested. Hand-made levels
-(<code>designed: true</code> in <code>js/core.js</code>, brought in by <code>tools/import_levels.py</code>) are kept as they are,
-after the same check. <b>Bake</b> writes <code>js/level-data.js</code> (needs <code>python tools/dev_server.py</code>).</p>
-<p>Levels <input id="n" type="number" value="60" min="1" max="300">
+(<code>designed: true</code> in <code>js/core.js</code>: the designers' sheet, brought in by <code>tools/import_levels.py</code>,
+and level 2, the rainbow) are kept as they are, after the same check. <b>Bake</b> writes <code>js/level-data.js</code>
+(needs <code>python tools/dev_server.py</code>).</p>
+<p>Levels <input id="n" type="number" value="61" min="1" max="300">
 Bot runs <input id="runs" type="number" value="60">
 Max attempts <input id="att" type="number" value="240">
 <button id="go">Bake</button> <span id="msg"></span></p>

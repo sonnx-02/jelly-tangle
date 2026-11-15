@@ -4,11 +4,12 @@
   const JT = window.JT, U = JT.U, C = JT.Core, R = JT.Render, A = JT.Audio, FX = JT.FX, G = JT.Game, UI = JT.UI, Save = JT.Save;
   const T = (k, v) => JT.I18n.t(k, v);
 
-  // unlock: 0-based level where the booster appears; grant: free uses on unlock; pack/price: shop offer
+  // unlock: 0-based level where the booster appears (levels 4, 6 and 8, the same levels as before the rainbow went
+  // in as level 2); grant: free uses on unlock; pack/price: shop offer
   JT.BOOST = {
-    hint: { unlock: 2, grant: 3, pack: 3, price: 60 },
-    pick: { unlock: 4, grant: 2, pack: 2, price: 120 },
-    slot: { unlock: 6, grant: 2, pack: 1, price: 100 }
+    hint: { unlock: 3, grant: 3, pack: 3, price: 60 },
+    pick: { unlock: 5, grant: 2, pack: 2, price: 120 },
+    slot: { unlock: 7, grant: 2, pack: 1, price: 100 }
   };
   // scale: the most device pixels per CSS pixel the canvases may use; the frame meter below can lower it.
   // speed: game time per real time (the cheat panel's slow motion / fast forward)

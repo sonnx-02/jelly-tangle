@@ -36,6 +36,9 @@
   // 12x12 pixel art, one picture per album slot (and per level)
   const PICS = {
     heart: { en: 'Heart', name: 'Trái tim', rows: ['SSSSSSSSSSSS', 'SSRRRSSRRRSS', 'SRRWRRRRRRRS', 'SRWRRRRRRRRS', 'SRRRRRRRRRRS', 'SRRRRRRRRRRS', 'SSRRRRRRRRSS', 'SSSRRRRRRSSS', 'SSSSRRRRSSSS', 'SSSSSRRSSSSS', 'SSSSSSSSSSSS', 'SSSSSSSSSSSS'] },
+    // one colour per ring, cherry outside to grape in the middle: the ring rule, drawn as a picture
+    rainbow: { en: 'Rainbow', name: 'Cầu vồng', rows: Array.from({ length: 12 }, (_, y) =>
+      Array.from({ length: 12 }, (_, x) => 'ROYGBP'[Math.min(x, y, 11 - x, 11 - y)]).join('')) },
     cat: { en: 'Ginger Cat', name: 'Mèo cam', rows: ['KKKKKKKKKKKK', 'KOOKKKKKKOOK', 'KOCOKKKKOCOK', 'KOOOOOOOOOOK', 'KOOOOOOOOOOK', 'KODDOOOODDOK', 'KOOOOOOOOOOK', 'KOOOCCCCOOOK', 'KOOCCRRCCOOK', 'KKOOCCCCOOKK', 'KKKOOOOOOKKK', 'KKKKKKKKKKKK'] },
     fish: { en: 'Goldfish', name: 'Cá vàng', rows: ['BBBBBBBBBWBB', 'BBBBBBBBBBBB', 'BBBBYYYYBBWB', 'BBBYYYYYYBBO', 'BBYYWDYYYYOO', 'BYYYYYYYYYOO', 'BYYOYYYYYYOO', 'BBYYYYYYYBBO', 'BBBYYYYYBBBB', 'BWBBBBBBBTBB', 'BBBTBBBBTTBT', 'TTTTTTTTTTTT'] },
     flower: { en: 'Flower Pot', name: 'Chậu hoa', rows: ['SSSSSSSSSSYY', 'SSSSKKKKSSYY', 'SSSKKKKKKSSS', 'SSKKKYYKKKSS', 'SSKKYYYYKKSS', 'SSKKKYYKKKSS', 'SSSKKKKKKSSS', 'SSSSSGGSSSSS', 'SGGGSGGSGGGS', 'SSNNNNNNNNSS', 'SSSNNNNNNSSS', 'SSSNNNNNNSSS'] },
@@ -68,13 +71,12 @@
     violet: { en: 'Violets', name: 'Chậu hoa tím', rows: ['SSSSSSSSSSSS', 'SSSPPSSPPSSS', 'SSPPPPPPPPSS', 'SSPPPWWPPPSS', 'SSSPPWWPPSSS', 'SSSSPPPPSSSS', 'SSSSSGGSSSSS', 'SSGGSGGSGGSS', 'SSSGGGGGGSSS', 'SSSOOOOOOSSS', 'SSSSOOOOSSSS', 'SSSSOOOOSSSS'] }
   };
 
-  // Album: 5 themed pages x 6 pictures; level N uses picture N in this order
-  // Album: 5 themed pages x 6 pictures; level N uses picture N in this order.
-  // bg: the page's backdrop (top, middle, bottom of the gradient, then the dot tint), so each page feels like a new place.
+  // Album: 5 themed pages of 6 pictures, and Sunny Day has a 7th, the rainbow. In the first lap level N uses
+  // picture N in this order.
   const ALBUM = [
     // bg: soft paper colours (top, middle, bottom, glow tint) behind the page's levels, pale enough that the
     // porcelain cards and the jelly colours always lead
-    { key: 'sunny', en: 'Sunny Day', name: 'Ngày nắng', pics: ['heart', 'cat', 'fish', 'flower', 'mushroom', 'icecream'], bg: ['#fdf3e7', '#f9e3d9', '#f2cfcd', '#fff7ef'] },
+    { key: 'sunny', en: 'Sunny Day', name: 'Ngày nắng', pics: ['heart', 'rainbow', 'cat', 'fish', 'flower', 'mushroom', 'icecream'], bg: ['#fdf3e7', '#f9e3d9', '#f2cfcd', '#fff7ef'] },
     { key: 'trip', en: 'Adventure', name: 'Phiêu lưu', pics: ['rocket', 'house', 'balloon', 'sailboat', 'bus', 'lighthouse'], bg: ['#eef5fa', '#dde9f4', '#c9d9ee', '#f6faff'] },
     { key: 'bakery', en: 'Bakery', name: 'Tiệm bánh', pics: ['cupcake', 'watermelon', 'candy', 'cake', 'donut', 'lollipop'], bg: ['#fdf1ea', '#f7e0e1', '#ecc9d3', '#fff6f2'] },
     { key: 'ocean', en: 'Ocean', name: 'Đại dương', pics: ['whale', 'starfish', 'turtle', 'octopus', 'crab', 'jellyfish'], bg: ['#eef8f5', '#d9eeea', '#c1e0de', '#f4fffc'] },
@@ -89,11 +91,22 @@
   const BASE = { slots: 5, density: 0.82, lmin: 2, lmax: 5, slack: 0.1, cols: 8, rows: 6 };   // landscape box: wider than tall, so the picture gets the height
   // one entry per album picture, in ALBUM_ORDER
   const LEVELS = [
-    // Levels 1-10 are hand-made: the level designers' sheet, brought in by tools/import_levels.py. designed: true
-    // keeps them when tools/levels.html re-bakes; target is the sheet's bot fail range for the level. They bring the
-    // mechanics in early: crossed worms at 3, wrapped candy at 6, dizzy worms at 9. Page 1 has a rack of 6.
+    // Levels 1-11 are hand-made. Level 2, the rainbow, was designed in-house; the others come from the level
+    // designers' sheet, brought in by tools/import_levels.py (sheet level n >= 2 is game level n + 1). designed: true
+    // keeps them when tools/levels.html re-bakes; target is the bot fail range for the level. They bring the
+    // mechanics in early: crossed worms at 4, wrapped candy at 7, dizzy worms at 10. Page 1 has a rack of 6.
     // (cross / mystery / rotate below only matter if a level ever has to be generated instead.)
+    // tip: a one-time toast when the level starts (js/i18n.js)
     { designed: true, band: 'easy', target: [0, 0.05], cols: 6, rows: 5, density: 0.8, lmax: 4, slack: 0.12, slots: 6 },
+    // Level 2, the rainbow: the picture fills one colour per ring, and the box is a rainbow too, peeled from the top.
+    // (< > ^ v: a worm's head and the way it leaves; data in js/level-data.js)
+    //    R< R  R  R^ R  R  R>     three cherries, free: they merge on the rack and fill the outer ring
+    //    O< O  O  R  O  O  O>     the oranges are free from the start but have to wait for their ring
+    //    G^ Y< Y  Y  Y  Y  G^     the yellow's way out is under a green: park the green, it paints by itself next
+    //    G  .  B^ P  B^ .  G      one berry is enough for its ring; the other turns into coins
+    //    .  .  B  Pv B  .  .      the grape is free all along but needed last: taken early, it holds a slot to the end
+    // A random player fails 5% of the time, always on the outer ring, with the rack full of colours that have to wait.
+    { designed: true, band: 'easy', target: [0.03, 0.1], cols: 7, rows: 5, slots: 6, tip: 'tipStrip' },
     { designed: true, band: 'easy', target: [0.08, 0.25], cols: 7, slots: 6 },
     { designed: true, band: 'normal', target: [0.25, 0.4], cols: 7, slots: 6, cross: 0.5, intro: 'cross' },
     { designed: true, band: 'normal', target: [0.4, 0.55], cols: 7, slots: 6, cross: 0.5 },
@@ -103,14 +116,14 @@
     { designed: true, band: 'hard', target: [0.68, 0.8], cross: 0.5, mystery: 0.35 },
     { designed: true, band: 'hard', target: [0.65, 0.78], cross: 0.5, mystery: 0.3, rotate: 2, intro: 'rotate' },
     { designed: true, band: 'super', target: [0.86, 0.95], cross: 0.5, mystery: 0.4, rotate: 3 },
-    // levels 11-16: the mechanics again on bigger boxes, then colour mixing
+    // levels 12-17: the mechanics again on bigger boxes, then colour mixing
     { band: 'normal', cols: 7, mystery: 0.4 },
     { band: 'hard', mystery: 0.35, cross: 0.5 },
     { band: 'normal', cols: 7, rotate: 2 },
     { band: 'hard', rotate: 3, cross: 0.5 },
     { band: 'hard', cols: 7, mix: true, slack: 0.7, intro: 'mix' },
     { band: 'hard', mix: true, slack: 0.4 },
-    // levels 17-30 combine the mechanics
+    // levels 18-31 combine the mechanics
     { band: 'normal', cross: 0.5 },
     { band: 'normal', mystery: 0.35 },
     { band: 'normal', rotate: 2 },
@@ -127,14 +140,21 @@
     { band: 'hard', cols: 7, mix: true, slack: 0.5 }
   ].map((l, i) => Object.assign({}, BASE, { pic: ALBUM_ORDER[i] }, l));
   const MIX_PICS = new Set(['candy', 'cake', 'violet']);
+  // The rainbow went in as level 2 after every other level was made and baked. It only plays once (it is there to
+  // show the ring rule), so later laps go round the other 30 pictures. Every level after it keeps its old index for
+  // its lap settings and generator seeds: it is exactly the level it was, one number higher, and a re-bake
+  // (tools/levels.html) still gives the same levels.
+  const LAP = ALBUM_ORDER.filter(k => k !== 'rainbow');
+  const oldIndex = idx => (idx > 1 ? idx - 1 : idx);
 
   function levelCfg(idx) {
     if (idx < LEVELS.length) return LEVELS[idx];
-    const pic = ALBUM_ORDER[idx % ALBUM_ORDER.length];
-    const hard = idx % 3 === 1;
+    const k = oldIndex(idx);
+    const pic = LAP[k % LAP.length];
+    const hard = k % 3 === 1;
     // second lap and beyond: same pictures, full-size boards, keep each picture's tuned rack size
-    const cfg = Object.assign({}, BASE, { pic, band: hard ? 'hard' : 'normal', slots: LEVELS[idx % LEVELS.length].slots });
-    const roll = idx % 4;
+    const cfg = Object.assign({}, BASE, { pic, band: hard ? 'hard' : 'normal', slots: LEVELS[ALBUM_ORDER.indexOf(pic)].slots });
+    const roll = k % 4;
     if (roll === 0) cfg.cross = 0.4;
     if (roll === 1) cfg.mystery = 0.3;
     if (roll === 2) cfg.rotate = 2;
@@ -637,7 +657,7 @@
     let best = null, tried = 0;
     for (let a = 0; a < maxAttempts; a++) {
       tried++;
-      const seed = hashSeed(idx + 1, a);
+      const seed = hashSeed(oldIndex(idx) + 1, a);
       const L = generate(cfg, seed);
       if (!L) continue;
       L.meta.attempt = a;

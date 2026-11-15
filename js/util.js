@@ -76,6 +76,7 @@
   const KEY = 'jellytangle.v1';
   function defaults() {
     return {
+      v: 2,                     // level numbering: 2 = with the rainbow as level 2 (see load)
       level: 0,                 // next level to play (0-based)
       coins: 100,
       boosters: { hint: 0, pick: 0, slot: 0 },
@@ -93,6 +94,13 @@
       cheat: { speed: 1, noMiss: false, infinite: false, ids: false, hide: {} }
     };
   }
+  // A new level went in at index at. Progress on the levels from there on moves up one. The next level to play
+  // moves too, unless it was the one at that index: then the player meets the new level next.
+  function insertLevel(d, at) {
+    const up = o => { const n = {}; for (const k in o) n[+k >= at ? +k + 1 : k] = o[k]; return n; };
+    if (d.level > at) d.level++;
+    d.stars = up(d.stars || {}); d.best = up(d.best || {});
+  }
   const Save = JT.Save = {
     data: defaults(),
     load() {
@@ -106,6 +114,9 @@
           // saves from before English became the default all hold lang: 'vi', picked or not: keep only a picked one
           if (!Save.data.settings.langPicked) Save.data.settings.lang = 'en';
           Save.data.cheat = Object.assign(defaults().cheat, d.cheat || {});
+          // a save without v is from before the rainbow went in as level 2: every level after the first is one
+          // number higher now, so stars, best times and the next level move up with them
+          if (!(d.v >= 2)) { insertLevel(Save.data, 1); Save.data.v = 2; Save.save(); }
         }
       } catch (e) { Save.data = defaults(); }
     },

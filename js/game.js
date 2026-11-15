@@ -551,8 +551,10 @@
       const opts = C.options(L, S);
       if (opts.length && !exits.length) W[U.pick(opts)].wig = clock;
     }
+    // the level's own one-time tip (LEVELS[].tip in core.js), once the box is in
+    if (L.cfg.tip && clock > 1100) tip(L.cfg.tip, 6000);
     if (tut && tut.step === 0 && clock > 1100 && !tut.shown) { tut.shown = true; handId = suggest(); JT.UI.toast(T('tut1'), 0); }
-    else if (idx < 3 && handId < 0 && hintId < 0 && clock - lastInput > (tut ? 2600 : 5500) && clock > 1500 && !exits.length && !balls.length) handId = suggest();
+    else if (idx < 4 && handId < 0 && hintId < 0 && clock - lastInput > (tut ? 2600 : 5500) && clock > 1500 && !exits.length && !balls.length) handId = suggest();
     // cheat auto-play: the hint planner's move every 0.7 s of game time, waiting whenever it says to wait. With no
     // worm left to pull there is nothing to do but let the jellies finish; it gives up only when worms could be
     // pulled and the planner finds no way through.

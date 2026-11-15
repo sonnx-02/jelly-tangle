@@ -38,9 +38,9 @@ Repo là một trang tĩnh nên cũng đẩy nguyên thư mục lên được Ne
 python tools/android/build_apk.py
 ```
 
-Ra file `dist/JellyTangle-1.1.5-debug.apk` (khoảng 300 KB, phần lớn là font và ảnh bàn tay). Script dùng thẳng công cụ của Android SDK (aapt2, javac, d8, zipalign, apksigner), không qua Gradle nên không tải thêm gì. SDK và JDK 17 lấy từ `ANDROID_HOME` / `JAVA_HOME`; nếu không đặt, script tự tìm trong bản Unity có cài Android Build Support (`C:\Program Files\Unity\Hub\Editor\<bản>\...\AndroidPlayer`).
+Ra file `dist/JellyTangle-1.1.6-debug.apk` (khoảng 300 KB, phần lớn là font và ảnh bàn tay). Script dùng thẳng công cụ của Android SDK (aapt2, javac, d8, zipalign, apksigner), không qua Gradle nên không tải thêm gì. SDK và JDK 17 lấy từ `ANDROID_HOME` / `JAVA_HOME`; nếu không đặt, script tự tìm trong bản Unity có cài Android Build Support (`C:\Program Files\Unity\Hub\Editor\<bản>\...\AndroidPlayer`).
 
-Cài lên máy: cắm điện thoại rồi chạy `adb install -r dist/JellyTangle-1.1.5-debug.apk`, hoặc chép file APK sang máy và mở (cho phép "cài ứng dụng không rõ nguồn gốc"). Khoá debug nằm ở `tools/android/keys/` (không đưa lên git) và được dùng lại, nên bản build sau cài đè lên bản trước được.
+Cài lên máy: cắm điện thoại rồi chạy `adb install -r dist/JellyTangle-1.1.6-debug.apk`, hoặc chép file APK sang máy và mở (cho phép "cài ứng dụng không rõ nguồn gốc"). Khoá debug nằm ở `tools/android/keys/` (không đưa lên git) và được dùng lại, nên bản build sau cài đè lên bản trước được.
 
 Bản phát hành ký bằng khoá riêng của bạn (mật khẩu truyền qua biến môi trường, không ghi ra dòng lệnh):
 
@@ -74,12 +74,28 @@ Baloo 2 (700, 800) và Nunito (700, 800, 900) nằm trong `assets/fonts/` dướ
 5. Hai viên **cùng màu đứng cạnh nhau** gộp làm một. Màu đã đủ thì được đổi thành xu.
 6. Khay đầy mà không viên nào phun được là thua.
 
-Hộp sâu nằm ngang: 8×6 ô (một số màn 7×6, màn 1 là 6×5).
+Hộp sâu nằm ngang: 8×6 ô (một số màn 7×6, màn 2 là 7×5, màn 1 là 6×5).
 
-Màn 1–10 là màn thiết kế tay (bộ màn của nhóm, xem "Nướng màn chơi"); từ màn 11 là màn sinh tự động.
-Cơ chế mở dần: sâu nằm đè (màn 3), kẹo bọc giấy (màn 6), sâu chóng mặt (màn 9), pha màu (màn 15).
-Trợ giúp mở dần: Gợi ý (màn 3), Kẹp gắp (màn 5), Thêm ô (màn 7).
-Màn khó có nhãn đỏ "KHÓ"; màn 10 là màn "SIÊU KHÓ" (bot chơi ngẫu nhiên thua khoảng 88%).
+Màn 1–11 là màn thiết kế tay: màn 2 (Cầu vồng) được thiết kế riêng, các màn còn lại lấy từ bộ màn của nhóm (xem "Nướng màn chơi"). Từ màn 12 là màn sinh tự động.
+Cơ chế mở dần: sâu nằm đè (màn 4), kẹo bọc giấy (màn 7), sâu chóng mặt (màn 10), pha màu (màn 16).
+Trợ giúp mở dần: Gợi ý (màn 4), Kẹp gắp (màn 6), Thêm ô (màn 8).
+Màn khó có nhãn đỏ "KHÓ"; màn 11 là màn "SIÊU KHÓ" (bot chơi ngẫu nhiên thua khoảng 88%).
+
+### Màn 2: Cầu vồng
+
+Tranh là một hình vuông cầu vồng, mỗi vòng một màu: đỏ ngoài cùng, rồi cam, vàng, xanh lá, lam, tím ở tâm. Nhờ vậy luật tô từng vòng từ ngoài vào hiện ra rõ ràng ngay sau màn hướng dẫn. Hộp sâu cũng xếp thành cầu vồng (hộp 7×5, khay 6 ô, 11 sâu) và được bóc dần từ trên xuống:
+
+```
+R< R  R  R^ R  R  R>     ba sâu đỏ ra được ngay, gộp làm một trên khay và tô kín vòng ngoài
+O< O  O  R  O  O  O>     hai sâu cam ra được ngay từ đầu nhưng phải chờ tới vòng của mình
+G^ Y< Y  Y  Y  Y  G^     lối ra của sâu vàng bị sâu xanh lá chặn: cất sâu xanh lá lên khay trước, nó sẽ tự phun khi tới vòng xanh
+G  .  B^ P  B^ .  G      một sâu lam là đủ cho vòng lam, sâu lam còn lại được đổi thành xu
+.  .  B  Pv B  .  .      sâu tím ra được ngay từ đầu nhưng cần sau cùng: kéo sớm thì nó chiếm một ô khay tới cuối màn
+```
+
+(`< > ^ v`: đầu sâu và hướng nó đi ra.) Bot chơi ngẫu nhiên thua 5%, khó hơn màn 1 (0%) và dễ hơn màn Mèo cam ngay sau (20%). Lần thua nào cũng rơi vào vòng ngoài cùng, khi khay đã đầy những màu chưa tới lượt, đúng bài học của màn. Lần đầu vào màn có một lời nhắc: dải màu dưới tranh cho biết vòng đang sáng còn cần màu nào.
+
+Cầu vồng nằm ở trang Ngày nắng của bộ sưu tập (trang này có 7 tranh, các trang khác 6) và chỉ chơi ở vòng đầu. Từ vòng thứ hai (màn 32 trở đi), các màn đi lại 30 tranh kia y như trước, chỉ lùi một số. Tiến trình lưu từ trước khi có Cầu vồng được dời theo khi mở game: sao, kỷ lục và màn kế tiếp đi theo đúng màn cũ. Ai mới qua màn 1 sẽ gặp Cầu vồng ngay sau đó; ai đã đi xa hơn thì Cầu vồng mở sẵn trong bộ sưu tập.
 
 ## Cấu trúc
 
@@ -87,7 +103,7 @@ Màn khó có nhãn đỏ "KHÓ"; màn 10 là màn "SIÊU KHÓ" (bot chơi ngẫ
 index.html              trang duy nhất
 css/style.css           giao diện "tiệm bánh": token màu, HUD, trang chủ, popup (mọi kích thước theo --u = 1% bề ngang cột game)
 js/core.js              luật chơi, bộ sinh màn, solver, bot đo độ khó; không đụng DOM
-js/level-data.js        60 màn có sẵn: 10 màn thiết kế + 50 màn nướng (file sinh ra, không sửa tay)
+js/level-data.js        61 màn có sẵn: 11 màn thiết kế + 50 màn nướng (file sinh ra, không sửa tay)
 js/levels.js            nạp màn: lấy từ dữ liệu nướng, ngoài bảng thì sinh lúc chạy
 js/game.js              màn chơi: hoạt ảnh, nhập liệu, hướng dẫn, trình tự thắng thua
 js/render.js            nét vẽ Canvas 2D: nền giấy, thẻ sứ, hộp sô-cô-la, sâu kẹo dẻo, viên jelly, ô tranh
@@ -119,9 +135,9 @@ Sau khi sửa `LEVELS`, `PICS` hay luật trong `core.js`:
 2. Mở http://localhost:5180/tools/levels.html và bấm **Bake**.
 3. Công cụ ghi lại `js/level-data.js`. Nếu có màn không đạt thì không ghi gì cả.
 
-### Màn thiết kế tay (màn 1–10)
+### Màn thiết kế tay (màn 1–11)
 
-Màn 1–10 lấy từ bộ màn của nhóm (file JSON: mỗi màn có mô tả dễ đọc và bản `baked` đúng định dạng `JT.LEVEL_DATA`). Nhập bằng:
+Màn 1 và 3–11 lấy từ bộ màn của nhóm (file JSON: mỗi màn có mô tả dễ đọc và bản `baked` đúng định dạng `JT.LEVEL_DATA`). Cầu vồng chen vào làm màn 2, nên từ màn 2 của bộ màn trở đi, màn n của bộ màn là màn n + 1 trong game; công cụ nhập tự dời số. Cầu vồng không có trong bộ màn: dữ liệu của nó chỉ nằm trong `js/level-data.js`, sơ đồ và ý đồ thiết kế ghi ở chú thích `LEVELS` trong `js/core.js`. Nhập bộ màn hay **Bake** đều giữ nguyên nó. Nhập bằng:
 
 ```
 python tools/import_levels.py duong/dan/jelly_tangle_levels_1-10.json
@@ -129,7 +145,7 @@ python tools/import_levels.py duong/dan/jelly_tangle_levels_1-10.json
 
 - Công cụ kiểm tra bản `baked` khớp với phần mô tả (kích thước hộp, số ô khay, tranh, từng con sâu: màu, lượng màu, ô, hướng đầu, ai đè ai), rồi thay đúng các màn có trong file; các màn khác giữ nguyên.
 - Bộ màn vẽ hộp dọc (5×6, 6×7, 6×8) theo bố cục cũ, nên mỗi màn được **xoay một góc vuông** sang hộp ngang (6×5, 7×6, 8×6), hướng đầu sâu và hướng quay của sâu chóng mặt xoay theo. Câu đố không đổi: solver ra đúng lời giải ghi trong file, tỉ lệ thua của bot trùng khớp tuyệt đối với hộp gốc (cùng seed, 3000 lượt). Muốn giữ hộp dọc thì thêm `--keep-orientation`.
-- `LEVELS[0..9]` trong `js/core.js` mang `designed: true` và `target` (dải tỉ lệ thua trong file). Kích thước hộp, số ô khay và tranh ở đó phải khớp dữ liệu, nếu không game sẽ bỏ dữ liệu và tự sinh màn khác. Khi **Bake**, `tools/levels.html` giữ nguyên các màn `designed` (sau khi giải lại để chắc chúng vẫn qua được) và chỉ sinh lại các màn còn lại.
+- `LEVELS[0..10]` trong `js/core.js` mang `designed: true` và `target` (dải tỉ lệ thua trong file). Kích thước hộp, số ô khay và tranh ở đó phải khớp dữ liệu, nếu không game sẽ bỏ dữ liệu và tự sinh màn khác. Khi **Bake**, `tools/levels.html` giữ nguyên các màn `designed` (sau khi giải lại để chắc chúng vẫn qua được) và chỉ sinh lại các màn còn lại.
 
 Lưu ý: bộ sinh màn từng dùng phép sắp xếp với bộ so sánh ngẫu nhiên, khiến cùng một seed có thể ra màn khác nhau tuỳ thời điểm chạy. Bộ so sánh đã được sửa cho nhất quán, và game không còn dựng màn từ seed nữa mà đọc thẳng dữ liệu đã nướng.
 
@@ -221,6 +237,6 @@ JT.Game.cheat.auto = 2        // tự chơi liên tục (như nút "Liên tục"
 
 ## Trạng thái
 
-Đã có: 60 màn (10 màn đầu thiết kế tay), 30 tranh trong 5 trang bộ sưu tập, 4 cơ chế nâng cao, 3 trợ giúp, sao, xu, thời gian và kỷ lục từng màn, hướng dẫn màn đầu, hai ngôn ngữ (mặc định tiếng Anh), lưu tiến trình, giao diện "tiệm bánh" cho người chơi 25–45 tuổi, âm thanh ASMR tổng hợp, con trỏ bàn tay khi chơi bằng chuột, bảng cheat để test, bản Android (APK).
+Đã có: 61 màn (11 màn đầu thiết kế tay), 31 tranh trong 5 trang bộ sưu tập, 4 cơ chế nâng cao, 3 trợ giúp, sao, xu, thời gian và kỷ lục từng màn, hướng dẫn màn đầu, hai ngôn ngữ (mặc định tiếng Anh), lưu tiến trình, giao diện "tiệm bánh" cho người chơi 25–45 tuổi, âm thanh ASMR tổng hợp, con trỏ bàn tay khi chơi bằng chuột, bảng cheat để test, bản Android (APK).
 
 Chưa có: quảng cáo và mua trong ứng dụng (giá xu hiện chỉ để minh hoạ), service worker để bản web chơi offline (bản Android đã chơi offline được).

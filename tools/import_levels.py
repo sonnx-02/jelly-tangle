@@ -10,10 +10,11 @@ fail rate. --keep-orientation stores the boxes as they are in the sheet.
 
     python tools/import_levels.py path/to/levels.json [--keep-orientation] [--dry-run]
 
-Each sheet level replaces the js/level-data.js entry of the same number; every other entry is kept. js/core.js must
-describe the same boxes (LEVELS[i]: cols, rows, slots, pic, mix) or the game rejects the data and generates a level
-instead, so the script prints the box each level needs. Mark those LEVELS entries designed: true so that
-tools/levels.html keeps them when it re-bakes the generated levels.
+Each sheet level replaces the js/level-data.js entry of its game level; every other entry is kept. The game has levels
+the sheet does not (NOT_IN_SHEET: the rainbow went in as level 2), so from there on sheet level n is game level n + 1.
+js/core.js must describe the same boxes (LEVELS[i]: cols, rows, slots, pic, mix) or the game rejects the data and
+generates a level instead, so the script prints the box each level needs. Mark those LEVELS entries designed: true so
+that tools/levels.html keeps them when it re-bakes the generated levels.
 """
 import argparse
 import json
@@ -25,6 +26,15 @@ from dev_server import OUT, write_level_data  # noqa: E402
 
 DIR_NAMES = ["up", "right", "down", "left"]          # core.js DIRS order
 PALETTE = set("ROYGLBSTPKWCNDA")
+NOT_IN_SHEET = [2]                                   # game levels (1-based) made outside the sheet: the rainbow
+
+
+def game_level(n):
+    """The game level that sheet level n became: each level made outside the sheet pushes the later ones up one."""
+    for g in NOT_IN_SHEET:
+        if n >= g:
+            n += 1
+    return n
 
 
 def die(msg):
@@ -105,16 +115,16 @@ def main():
     if not levels:
         die("the sheet has no levels")
     data = read_level_data()
-    print("level  sheet box  game box  slots  picture     worms  bot fail  difficulty")
+    print("sheet  game  sheet box  game box  slots  picture     worms  bot fail  difficulty")
     for lv in levels:
         b = check(lv)
         new = b if args.keep_orientation else turn(b)
-        n = lv["level"]
+        n = game_level(lv["level"])
         if not (1 <= n <= len(data)):
-            die("level %d is outside js/level-data.js (1..%d)" % (n, len(data)))
+            die("sheet level %d is game level %d, outside js/level-data.js (1..%d)" % (lv["level"], n, len(data)))
         data[n - 1] = new
         c = new["c"]
-        print("%5d  %3dx%-5d  %3dx%-4d  %5d  %-10s  %5d  %7d%%  %s" % (n, b["c"][0], b["c"][1], c[0], c[1], c[2], c[3], len(new["h"]), new["fr"], lv.get("difficulty", "")))
+        print("%5d  %4d  %3dx%-5d  %3dx%-4d  %5d  %-10s  %5d  %7d%%  %s" % (lv["level"], n, b["c"][0], b["c"][1], c[0], c[1], c[2], c[3], len(new["h"]), new["fr"], lv.get("difficulty", "")))
     if args.dry_run:
         print("\ndry run: nothing written")
         return
