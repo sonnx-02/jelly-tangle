@@ -1,78 +1,96 @@
-/* Drawing primitives. Everything is procedural Canvas 2D: glossy gummy worms, jelly blobs, jelly tiles,
-   cream panels and the chocolate tray. One light direction (top-left) is used everywhere. */
+/* Drawing primitives. Everything is procedural Canvas 2D: gummy worms, jelly blobs, jelly tiles, porcelain panels
+   and the chocolate box. The look follows css/style.css ("pâtisserie"): porcelain on soft pastel paper, espresso
+   ink, a box of moulded chocolate with a thin gold rim. One light direction (top-left) is used everywhere. */
 (function () {
   'use strict';
   const JT = window.JT, U = JT.U, C = JT.Core;
   const R = JT.Render = { dpr: 1, fontGen: 0 };   // fontGen bumps when web fonts arrive, so cached text is redrawn
-  const INK = R.INK = '#4a2617';
+  const INK = R.INK = '#3e2a25';
   const TAU = U.TAU;
   R.COL = k => C.PALETTE[k].hex;
   R.WRAP = '#cfc9dd';
+  // the chocolate box: rim, floor, the moulded squares, and the gold foil line around it
+  const TRAY = R.TRAY = { rim: '#2b1b17', base: '#3a2520', cell: '#4a2f28', foil: '#d9b46c' };
   // One outline family for every candy: the colour's own dark shade pulled halfway to the ink brown. Each object
   // used to get its own shaded rim plus glossy streaks, which read as generated; a shared outline reads as drawn.
   const rims = new Map();
   const rimOf = R.rimOf = hex => { let v = rims.get(hex); if (!v) { v = U.mix(U.shade(hex, -0.42), INK, 0.5); rims.set(hex, v); } return v; };
   // A candy that is too dark for the chocolate box gets a pale halo. Decided by real WCAG contrast against the
-  // box squares (#4b2a1b), not by a guess: below 3:1 a strong halo, below 4:1 a light one.
+  // box squares, not by a guess: below 3:1 a strong halo, below 4:1 a light one.
   const halos = new Map();
-  const haloOf = hex => { let v = halos.get(hex); if (v === undefined) { const c = U.contrast(hex, '#4b2a1b'); v = c < 3 ? 0.5 : c < 4 ? 0.32 : 0; halos.set(hex, v); } return v; };
+  const haloOf = hex => { let v = halos.get(hex); if (v === undefined) { const c = U.contrast(hex, TRAY.cell); v = c < 3 ? 0.5 : c < 4 ? 0.32 : 0; halos.set(hex, v); } return v; };
   R.symbols = false;   // colour symbols for colour-blind players (settings)
 
   // ---------- scene ----------
+  // a tile of faint light and dark specks: laid over the flat paper colour it reads as a material, not a gradient
+  let grain = null;
+  function grainPattern(ctx) {
+    if (!grain) {
+      const n = 128, cv = document.createElement('canvas'); cv.width = cv.height = n;
+      const c = cv.getContext('2d'), img = c.createImageData(n, n), d = img.data;
+      for (let i = 0; i < d.length; i += 4) { const v = Math.random() < 0.5 ? 40 : 255; d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = Math.random() * 16; }
+      c.putImageData(img, 0, 0); grain = cv;
+    }
+    const p = ctx.createPattern(grain, 'repeat');
+    if (p.setTransform && window.DOMMatrix) p.setTransform(new DOMMatrix().scale(1 / R.dpr));   // one speck per device pixel
+    return p;
+  }
   // bg: [top, middle, bottom, glow tint] from the album page (Core.ALBUM[].bg); defaults to the first page
   R.background = function (ctx, W, H, bg) {
     bg = bg || C.ALBUM[0].bg;
     const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, bg[0]); g.addColorStop(0.5, bg[1]); g.addColorStop(1, bg[2]);
+    g.addColorStop(0, bg[0]); g.addColorStop(0.55, bg[1]); g.addColorStop(1, bg[2]);
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
     const glow = (x, y, r, c) => {
       const rg = ctx.createRadialGradient(x, y, 0, x, y, r);
       rg.addColorStop(0, c); rg.addColorStop(1, 'rgba(255,255,255,0)');
       ctx.fillStyle = rg; ctx.fillRect(x - r, y - r, r * 2, r * 2);
     };
-    glow(W * 0.08, H * 0.06, W * 0.8, 'rgba(255,255,255,0.55)');
-    glow(W * 1.0, H * 0.5, W * 0.7, U.rgba(bg[3], 0.45));
-    glow(W * 0.15, H * 1.0, W * 0.8, U.rgba(U.shade(bg[2], -0.12), 0.28));
-    // polka dots
-    ctx.fillStyle = 'rgba(255,255,255,0.2)';
-    const s = W / 8;
-    for (let y = -1; y * s * 0.86 < H + s; y++) {
-      for (let x = -1; x * s < W + s; x++) {
-        ctx.beginPath(); ctx.arc(x * s + (y % 2 ? s / 2 : 0), y * s * 0.86, s * 0.1, 0, TAU); ctx.fill();
-      }
+    glow(W * 0.1, H * 0.04, W * 0.95, 'rgba(255,255,255,0.6)');
+    glow(W * 1.05, H * 0.55, W * 0.75, U.rgba(bg[3], 0.5));
+    glow(0, H, W * 0.9, U.rgba(U.shade(bg[2], -0.08), 0.22));
+    // a few large, faint discs of light, as if the paper sat under a window
+    ctx.fillStyle = 'rgba(255,255,255,0.14)';
+    for (const b of [[0.84, 0.1, 0.17], [0.1, 0.36, 0.11], [0.92, 0.7, 0.21], [0.16, 0.88, 0.15], [0.56, 0.52, 0.07]]) {
+      ctx.beginPath(); ctx.arc(W * b[0], H * b[1], W * b[2], 0, TAU); ctx.fill();
     }
+    ctx.fillStyle = grainPattern(ctx); ctx.fillRect(0, 0, W, H);
   };
 
-  // cream card with a 3D lip and soft shadow
+  // porcelain card: a soft ambient shadow, a tight contact shadow, a warm top-to-bottom sheen and a hairline edge
   R.panel = function (ctx, x, y, w, h, r, o) {
     o = o || {};
-    const lip = o.lip === undefined ? Math.max(3, h * 0.03) : o.lip;
     ctx.save();
-    ctx.shadowColor = 'rgba(150,60,50,0.32)'; ctx.shadowBlur = o.blur || 18; ctx.shadowOffsetY = lip + 4;
-    U.rr(ctx, x, y, w, h, r); ctx.fillStyle = o.lipColor || '#e6c8a0'; ctx.fill();
+    U.rr(ctx, x, y, w, h, r); ctx.fillStyle = o.fill || '#fffaf5';
+    ctx.shadowColor = 'rgba(80,48,36,0.16)'; ctx.shadowBlur = o.blur || Math.max(14, Math.min(40, h * 0.08)); ctx.shadowOffsetY = Math.max(4, Math.min(12, h * 0.025));
+    ctx.fill();
+    ctx.shadowColor = 'rgba(80,48,36,0.12)'; ctx.shadowBlur = 3; ctx.shadowOffsetY = 1;
+    ctx.fill();
     ctx.restore();
-    U.rr(ctx, x, y + lip, w, h, r); ctx.fillStyle = o.lipColor || '#e6c8a0'; ctx.fill();
-    U.rr(ctx, x, y, w, h, r); ctx.fillStyle = o.fill || '#fff7e8'; ctx.fill();
     ctx.save(); U.rr(ctx, x, y, w, h, r); ctx.clip();
     const g = ctx.createLinearGradient(0, y, 0, y + h);
-    g.addColorStop(0, 'rgba(255,255,255,0.8)'); g.addColorStop(0.18, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(240,200,150,0.18)');
+    g.addColorStop(0, 'rgba(255,255,255,0.7)'); g.addColorStop(0.25, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(232,206,180,0.2)');
     ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
     ctx.restore();
+    U.rr(ctx, x + 0.5, y + 0.5, w - 1, h - 1, Math.max(0, r - 0.5)); ctx.strokeStyle = 'rgba(110,74,60,0.13)'; ctx.lineWidth = 1; ctx.stroke();
   };
 
-  // the chocolate box the worms sit in
+  // the box of moulded chocolates the worms sit in, set into a porcelain frame with a gold foil line
   R.tray = function (ctx, x, y, w, h, pad, cell, cols, rows) {
     const r = Math.min(cell * 0.55, 26);
-    R.panel(ctx, x, y, w, h, r, { lip: Math.max(4, cell * 0.12) });
+    R.panel(ctx, x, y, w, h, r);
     const ix = x + pad, iy = y + pad, iw = w - pad * 2, ih = h - pad * 2, ir = Math.max(6, r - pad);
-    U.rr(ctx, ix - 3, iy - 3, iw + 6, ih + 6, ir + 3); ctx.fillStyle = '#2c160d'; ctx.fill();
-    U.rr(ctx, ix, iy, iw, ih, ir); ctx.fillStyle = '#3b2015'; ctx.fill();
-    // chocolate-bar squares
+    U.rr(ctx, ix - 3, iy - 3, iw + 6, ih + 6, ir + 3); ctx.fillStyle = TRAY.foil; ctx.fill();
+    U.rr(ctx, ix - 1.6, iy - 1.6, iw + 3.2, ih + 3.2, ir + 1.6); ctx.fillStyle = TRAY.rim; ctx.fill();
+    U.rr(ctx, ix, iy, iw, ih, ir); ctx.fillStyle = TRAY.base; ctx.fill();
+    // each square: the chocolate, then a bevel (light at the top left, shade at the bottom right)
     for (let cy = 0; cy < rows; cy++) {
       for (let cx = 0; cx < cols; cx++) {
-        const px = ix + cx * cell, py = iy + cy * cell, m = Math.max(1, cell * 0.045);
-        U.rr(ctx, px + m, py + m, cell - 2 * m, cell - 2 * m, cell * 0.2); ctx.fillStyle = '#4b2a1b'; ctx.fill();
-        U.rr(ctx, px + m, py + m, cell - 2 * m, (cell - 2 * m) * 0.5, cell * 0.2); ctx.fillStyle = 'rgba(255,220,180,0.05)'; ctx.fill();
+        const px = ix + cx * cell, py = iy + cy * cell, m = Math.max(1, cell * 0.05), s = cell - 2 * m;
+        U.rr(ctx, px + m, py + m, s, s, cell * 0.18); ctx.fillStyle = TRAY.cell; ctx.fill();
+        const bv = ctx.createLinearGradient(px + m, py + m, px + m + s, py + m + s);
+        bv.addColorStop(0, 'rgba(255,226,200,0.11)'); bv.addColorStop(0.45, 'rgba(255,226,200,0)'); bv.addColorStop(1, 'rgba(0,0,0,0.18)');
+        ctx.fillStyle = bv; ctx.fill();
       }
     }
     // inner shadow at the top edge
@@ -115,20 +133,22 @@
       else R.socket(ctx, cx, cy, cellPx, R.COL(pic.cells[i]), false);
     }
   };
+  const SOCKET = '#e4d5c3';   // an empty picture cell; the picture's board behind the cells is R.PICBG
+  R.PICBG = '#efe5d8';
   // An empty picture cell: a socket with a seed of its target colour (hex null: a closed ring, no seed).
   // key: the colour key; with colour symbols on, the seed is drawn as that colour's shape instead of a dot.
   R.socket = function (ctx, x, y, s, hex, active, key) {
     const m = s * 0.06;
     U.rr(ctx, x + m, y + m, s - 2 * m, s - 2 * m, s * 0.24);
-    ctx.fillStyle = active ? '#fffdf6' : '#dcc5a2'; ctx.fill();
+    ctx.fillStyle = active ? '#fffaf5' : SOCKET; ctx.fill();
     if (!hex) return;
     const r = s * (active ? 0.27 : 0.2);
     if (R.symbols && key) {
-      R.glyph(ctx, key, x + s / 2, y + s / 2, r * 1.15, active ? hex : U.mix(hex, '#dcc5a2', 0.18), active ? U.shade(hex, -0.35) : null);
+      R.glyph(ctx, key, x + s / 2, y + s / 2, r * 1.15, active ? hex : U.mix(hex, SOCKET, 0.18), active ? U.shade(hex, -0.35) : null);
       return;
     }
     ctx.beginPath(); ctx.arc(x + s / 2, y + s / 2, r, 0, TAU);
-    ctx.fillStyle = active ? hex : U.mix(hex, '#dcc5a2', 0.18); ctx.fill();
+    ctx.fillStyle = active ? hex : U.mix(hex, SOCKET, 0.18); ctx.fill();
     if (active) { ctx.lineWidth = Math.max(1, s * 0.05); ctx.strokeStyle = U.shade(hex, -0.22); ctx.stroke(); }
   };
 
@@ -288,19 +308,19 @@
 
   // count pill under a blob
   R.pill = function (ctx, str, x, y, h) {
-    ctx.font = '800 ' + (h * 0.78) + 'px "Baloo 2", system-ui, sans-serif';
+    ctx.font = '900 ' + (h * 0.74) + 'px Nunito, system-ui, sans-serif';
     const w = Math.max(h * 1.5, ctx.measureText(str).width + h * 0.8);
     U.rr(ctx, x - w / 2, y - h / 2, w, h, h / 2); ctx.fillStyle = INK; ctx.fill();
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff'; ctx.fillText(str, x, y + h * 0.06);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff'; ctx.fillText(str, x, y + h * 0.04);
   };
 
   R.coin = function (ctx, x, y, r, spin) {
     const sx = spin === undefined ? 1 : Math.max(0.25, Math.abs(Math.cos(spin)));
     ctx.save(); ctx.translate(x, y); ctx.scale(sx, 1);
-    ctx.fillStyle = '#c47d0a'; ctx.beginPath(); ctx.arc(0, r * 0.12, r, 0, TAU); ctx.fill();
-    ctx.fillStyle = '#ffc93c'; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill();
-    ctx.fillStyle = '#ffe58a'; ctx.beginPath(); ctx.arc(0, 0, r * 0.72, 0, TAU); ctx.fill();
-    ctx.fillStyle = '#ffc93c'; ctx.beginPath(); ctx.arc(0, r * 0.06, r * 0.6, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#c99227'; ctx.beginPath(); ctx.arc(0, r * 0.12, r, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#f4c457'; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#fbe08f'; ctx.beginPath(); ctx.arc(0, 0, r * 0.72, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#f4c457'; ctx.beginPath(); ctx.arc(0, r * 0.06, r * 0.6, 0, TAU); ctx.fill();
     ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.beginPath(); ctx.ellipse(-r * 0.3, -r * 0.38, r * 0.26, r * 0.12, -0.6, 0, TAU); ctx.fill();
     ctx.restore();
   };

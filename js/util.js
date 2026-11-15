@@ -82,6 +82,7 @@
       unlocked: {},             // booster name -> true once its unlock popup was shown
       album: [],                // finished picture keys
       stars: {},                // level index -> best stars
+      best: {},                 // level index -> fastest winning time, in ms of play (paused time does not count)
       claimed: [],              // album pages whose reward was paid
       seenIntro: [],            // mechanic intros already shown
       tips: {},                 // one-time tips already shown

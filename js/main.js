@@ -35,12 +35,13 @@
   // around the level card. Lanes further down are "nearer": a little bigger and faster. A lane is a fraction
   // between the logo's bottom edge (measured, it differs per screen shape) and the bottom of the screen.
   let laneTop = 0.3;
+  // a calm backdrop: five worms, slow enough to watch, never a crowd
   function initHome() {
-    const keys = ['K', 'O', 'Y', 'G', 'B', 'P', 'S', 'R'];
-    const n = 7;
+    const keys = ['K', 'Y', 'S', 'O', 'G'];
+    const n = 5;
     for (let i = 0; i < n; i++) {
       const near = i / (n - 1);
-      strollers.push({ c: keys[i], lane: (i + 0.5) / n + U.rand(-0.02, 0.02), dir: i % 2 ? 1 : -1, speed: U.rand(0.018, 0.03) * (0.85 + near * 0.3), len: U.rand(0.34, 0.6),
+      strollers.push({ c: keys[i], lane: (i + 0.5) / n + U.rand(-0.02, 0.02), dir: i % 2 ? 1 : -1, speed: U.rand(0.011, 0.017) * (0.85 + near * 0.3), len: U.rand(0.34, 0.55),
         scale: 0.86 + near * 0.22, off: Math.random(), amp: U.rand(0.008, 0.016), ph: U.rand(0, 6), blink: U.rand(500, 3000) });
     }
   }
@@ -59,7 +60,7 @@
     }
     ctx.drawImage(bgCv, 0, 0, W, H);
     for (const s of strollers) {
-      const w = W * 0.085 * s.scale;
+      const w = W * 0.07 * s.scale;   // slimmer than the worms in the box: they are scenery here
       s.y = laneTop + s.lane * (0.985 - laneTop);
       const body = W * s.len, span = W + body + w * 4, prog = (t * s.speed * 0.001 + s.off) % 1;
       const hx = s.dir > 0 ? -w * 2 + prog * span : W + w * 2 - prog * span;
@@ -68,8 +69,8 @@
         const x = hx - s.dir * body * (1 - k / n);
         pts.push({ x: x, y: H * s.y + Math.sin(x * 0.02 + s.ph + t * 0.0022) * H * s.amp });
       }
-      const hex = R.COL(s.c);
-      R.worm(ctx, pts, { hex: hex, w: w });
+      const hex = U.mix(R.COL(s.c), '#fff6ee', 0.18);   // a little paler than in play, so they sit back behind the menu
+      R.worm(ctx, pts, { hex: hex, w: w, onLight: true });
       const a = pts[n], b = pts[n - 2];
       R.head(ctx, a.x, a.y, Math.atan2(a.y - b.y, a.x - b.x), w * 0.62, { hex: hex, blink: (t + s.blink) % 3400 < 140 ? 1 : 0 });
     }
@@ -177,6 +178,9 @@
     const stars = res.misses === 0 ? 3 : res.misses <= 2 ? 2 : 1, newPic = !d.album.includes(key);
     if (newPic) d.album.push(key);
     d.stars[idx] = Math.max(d.stars[idx] || 0, stars);
+    // personal best time per level; the card says "new best" only when an earlier time is beaten, not on a first win
+    const prevBest = d.best[idx] || 0, newBest = !!(res.time && prevBest && res.time < prevBest);
+    if (res.time && (!prevBest || res.time < prevBest)) d.best[idx] = res.time;
     if (idx === d.level) d.level = idx + 1;
     const reward = 20 + stars * 5;
     d.coins += reward;
@@ -189,7 +193,8 @@
     }
     Save.save();
     UI.setCoins(d.coins); UI.setBoosters();
-    UI.win({ idx: idx, pic: L.pic, stars: stars, coins: reward + res.bonus, page: page, n: n, newPic: newPic, pageBonus: pageBonus });
+    UI.win({ idx: idx, pic: L.pic, stars: stars, coins: reward + res.bonus, page: page, n: n, newPic: newPic, pageBonus: pageBonus,
+      time: res.time, best: prevBest, newBest: newBest });
     FX.confetti(App.W / 2, App.H * 0.3, 40, -Math.PI / 2, Math.PI, 0.7);
   };
   App.onFail = function (reason) { UI.fail(reason); };

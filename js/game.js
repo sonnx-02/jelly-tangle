@@ -19,7 +19,7 @@
   let ringFlash = -1e9, picPulse = -1e9, rackAlarm = -1e9, winT0 = -1;
   let revealed = null, rotAnim = {}, hintId = -1, handId = -1, pickMode = false;
   let lastInput = 0, nextWiggle = 0, autoAt = 0, shake = { t0: -1e9, amp: 0, dur: 1 };
-  let extraSlots = 0, bonusCoins = 0, tut = null;
+  let extraSlots = 0, bonusCoins = 0, tut = null, wonAt = 0;   // wonAt: game time of the winning move (the win card's time)
   let staticCv = null, unpCv = null, unpRing = -9, unpVer = -1;
   const tmpA = [], tmpB = [];
 
@@ -128,7 +128,7 @@
   // ---------- level setup ----------
   G.start = function (i) {
     idx = i; L = JT.Levels.get(i); S = C.newState(L);
-    clock = 0; tickAcc = 0; status = 'play'; misses = 0; G.paused = false;
+    clock = 0; tickAcc = 0; status = 'play'; misses = 0; wonAt = 0; G.paused = false;
     exits = []; balls = []; shots = []; sched = []; vis = new Array(S.slots.length).fill(null);
     paintedAt = new Float64Array(L.pic.total).fill(Infinity);
     visLeft = L.pic.ringSize.slice(); visRing = 0;
@@ -203,12 +203,13 @@
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
     R.background(c, lay.W, lay.H, pageOf().bg);
     R.panel(c, lay.ppX, lay.ppY, lay.ppW, lay.ppH, 4.6 * u);
-    U.rr(c, lay.picX - 0.9 * u, lay.picY - 0.9 * u, lay.picW + 1.8 * u, lay.picH + 1.8 * u, 2.6 * u); c.fillStyle = '#e9d3b1'; c.fill();
+    U.rr(c, lay.picX - 0.9 * u, lay.picY - 0.9 * u, lay.picW + 1.8 * u, lay.picH + 1.8 * u, 2.6 * u); c.fillStyle = R.PICBG; c.fill();
     R.panel(c, lay.rackX, lay.rackY, lay.rackW, lay.rackH, lay.rackH / 2);
+    // the rack's wells: shallow porcelain dishes, shaded at the top where the rim overhangs
     for (let i = 0; i < S.slots.length; i++) {
-      const p = slotPos(i), r = lay.slotR * 1.08;
-      c.fillStyle = '#e3c9a4'; c.beginPath(); c.arc(p.x, p.y + lay.slotR * 0.12, r, 0, U.TAU); c.fill();
-      c.fillStyle = '#f3e2c6'; c.beginPath(); c.arc(p.x, p.y + lay.slotR * 0.12 + r * 0.1, r * 0.94, 0, U.TAU); c.fill();
+      const p = slotPos(i), r = lay.slotR * 1.08, wy = p.y + lay.slotR * 0.12;
+      c.fillStyle = '#e8dac9'; c.beginPath(); c.arc(p.x, wy, r, 0, U.TAU); c.fill();
+      c.fillStyle = '#f7eee4'; c.beginPath(); c.arc(p.x, wy + r * 0.1, r * 0.93, 0, U.TAU); c.fill();
     }
     R.tray(c, lay.trayX, lay.trayY, lay.trayW, lay.trayH, lay.trayPad, lay.cell, L.cols, L.rows);
   }
@@ -327,7 +328,7 @@
       const hp = pointAt(path, path.headS + amp + 0.36);
       FX.burst(FX.world, sx(hp.x), sy(hp.y), '#ffffff', 8, 0.3, lay.cell * 0.08);
       FX.ring(FX.world, sx(hp.x), sy(hp.y), '#ff5468', lay.cell * 0.1, lay.cell * 0.7, 320, 5);
-      shakeIt(lay.u * 1.6, 260); A.bonk(); A.buzz(40);
+      shakeIt(lay.u * 1.6, 260); A.bonk(sx(hp.x)); A.buzz(40);
     });
     after(dur, () => { W[id].bump = null; });
     // no hearts: a blocked tap never ends the level, it only costs stars (see App.onWin)
@@ -358,7 +359,7 @@
     exits.push({ id: id, mode: mode, path: path, Lw: wv.Lw, edgeS: edgeS, ex: ex, ey: ey, t0: clock, dur: dur, ev: ev, c: h.color, paint: h.paint, ang: angleOf(dir), popped: false, puff: 0 });
     noteRotations(before);
     checkReveals(false);
-    A.whoosh(); A.buzz(8);
+    A.whoosh(ex); A.buzz(8);
     if (tut && tut.step === 0) {
       tut.step = 1; JT.UI.toast(T('tut2'), 3400);
       // the ring rule is the one thing new players miss: say it while the first jelly is squirting, not after the ring is done
@@ -376,13 +377,13 @@
     let v = vis[i];
     if (!v) {
       v = vis[i] = { c: b.c, paint: b.paint, born: clock, bumpT: -1e9, shotT: -1e9, mixT: -1e9, from: null };
-      A.land(); A.buzz(10);
+      A.land(slotPos(i).x); A.buzz(10);
       FX.ring(FX.world, p.x, p.y, COL(b.c), lay.slotR * 0.6, lay.slotR * 1.7, 360, 5);
       FX.burst(FX.world, p.x, p.y + lay.slotR * 0.5, COL(b.c), 6, 0.22, lay.u * 1.1, { up: 0.1 });
     } else {
       v.paint += b.paint; v.bumpT = clock;
       if (truth === v.c && b.c === v.c) {
-        A.merge(); A.buzz(12);
+        A.merge(slotPos(i).x); A.buzz(12);
         FX.text('+' + b.paint, p.x, p.y - lay.slotR * 1.3, { size: lay.u * 5.4, fill: '#ffffff', stroke: U.shade(COL(v.c), -0.45), rise: lay.u * 6 });
         FX.ring(FX.world, p.x, p.y, '#ffffff', lay.slotR * 0.8, lay.slotR * 2, 420, 6);
         FX.sparkles(FX.world, p.x, p.y, 5, lay.slotR);
@@ -391,7 +392,7 @@
     }
     if (truth !== v.c) {
       v.from = v.c; v.c = truth; v.mixT = clock;
-      A.mix();
+      A.mix(slotPos(i).x);
       FX.text(JT.I18n.colorName(truth) + '!', p.x, p.y - lay.slotR * 1.3, { size: lay.u * 5.4, fill: COL(truth), stroke: R.INK, rise: lay.u * 6 });
       FX.burst(FX.world, p.x, p.y, COL(v.from), 7, 0.3, lay.u * 1.2);
       FX.burst(FX.world, p.x, p.y, COL(b.c), 7, 0.3, lay.u * 1.2);
@@ -405,7 +406,7 @@
     const p = slotPos(i), hex = COL(v.c);
     FX.burst(FX.world, p.x, p.y, hex, 12, 0.34, lay.u * 1.5);
     FX.ring(FX.world, p.x, p.y, hex, lay.slotR * 0.4, lay.slotR * 1.6, 340, 5);
-    A.pop(i);
+    A.pop(i, p.x);
     if (toCoins) giveCoins(p.x, p.y, 1);
   }
   function giveCoins(x, y, n) {
@@ -425,7 +426,7 @@
       } else if (e.empty) popBlob(e.slot, false);
       else if (e.drained) { popBlob(e.slot, true); tip('tipDone'); }
     }
-    if (S.left === 0) { status = 'won'; hintId = handId = -1; pickMode = false; JT.UI.setPick(false); JT.UI.toast(''); return; }
+    if (S.left === 0) { status = 'won'; wonAt = clock; hintId = handId = -1; pickMode = false; JT.UI.setPick(false); JT.UI.toast(''); return; }
     if (!ev.length && !pickMode) {
       const pending = S.slots.some(sl => sl && sl.ready > clock) || exits.length || balls.length;
       if (!pending && C.options(L, S).length === 0) lose(rackBlocked() ? 'rack' : 'stuck');
@@ -451,7 +452,7 @@
     if (visRing >= pic.rings) { beginWin(); return; }
     ringFlash = clock; picPulse = clock;
     A.ringDone(r); A.buzz(18);
-    FX.text(U.pick(T('praise')), cx, cy, { size: lay.u * 8.5, fill: '#ffffff', stroke: '#e23f85', rot: U.rand(-0.12, 0.12), life: 1050, rise: lay.u * 5 });
+    FX.text(U.pick(T('praise')), cx, cy, { size: lay.u * 8.5, fill: '#ffffff', stroke: '#c45d68', rot: U.rand(-0.08, 0.08), life: 1050, rise: lay.u * 5 });
     for (const c of ringCells[r]) {
       if (Math.random() < 0.3) { const p = picCell(c); FX.sparkles(FX.world, p.x, p.y, 1, lay.pc * 0.3, '#ffffff'); }
     }
@@ -465,7 +466,7 @@
     FX.confetti(0, lay.H * 0.72, 45, -Math.PI / 3, 0.5, 1.35);
     FX.confetti(lay.W, lay.H * 0.72, 45, -Math.PI * 2 / 3, 0.5, 1.35);
     // the praise matches the stars the player is about to get (see App.onWin)
-    FX.text(T(misses === 0 ? 'winPraise' : misses <= 2 ? 'winPraise2' : 'winPraise1'), lay.W / 2, cy, { size: lay.u * 11, fill: '#ffe14d', stroke: '#e23f85', life: 1500, rise: lay.u * 4, delay: 150 });
+    FX.text(T(misses === 0 ? 'winPraise' : misses <= 2 ? 'winPraise2' : 'winPraise1'), lay.W / 2, cy, { size: lay.u * 11, fill: '#ffe9b0', stroke: '#c45d68', life: 1500, rise: lay.u * 4, delay: 150 });
     let t = 520, k = 0;
     for (let id = 0; id < L.hoses.length; id++) {
       if (S.removed[id]) continue;
@@ -474,7 +475,7 @@
         const wv = W[id], m = pointAt(wv.path, wv.Lw / 2), hex = isHidden(id) ? R.WRAP : COL(L.hoses[id].color);
         wv.gone = clock; S.removed[id] = 1;
         FX.burst(FX.world, sx(m.x), sy(m.y), hex, 10, 0.32, lay.cell * 0.1);
-        A.pop(kk); A.buzz(6);
+        A.pop(kk, sx(m.x)); A.buzz(6);
         giveCoins(sx(m.x), sy(m.y), 2);
       });
       t += 90;
@@ -484,7 +485,7 @@
       after(t, () => popBlob(i, true));
       t += 90;
     }
-    after(t + 750, () => JT.App.onWin({ misses: misses, bonus: bonusCoins }));
+    after(t + 750, () => JT.App.onWin({ misses: misses, bonus: bonusCoins, time: Math.round(wonAt) }));
     if (tut) { JT.Save.data.tips.tut = 1; JT.Save.save(); tut = null; }
   }
 
@@ -509,7 +510,7 @@
       }
       if (a.ev.discarded) {
         FX.burst(FX.world, a.ex, a.ey, '#ffd23f', 10, 0.3, lay.u * 1.3);
-        A.pop(3); giveCoins(a.ex, a.ey, 2); tip('tipDone');
+        A.pop(3, a.ex); giveCoins(a.ex, a.ey, 2); tip('tipDone');
       } else balls.push({ x0: a.ex, y0: a.ey, slot: a.ev.slot, t0: a.t0 + a.dur, dur: FLY, c: a.c, paint: a.paint, trail: 0 });
     }
     exits.length = n;
@@ -531,7 +532,7 @@
       if (clock - s.t0 < s.dur) { shots[n++] = s; continue; }
       const ly = L.pic.layer[s.cell];
       visLeft[ly]--;
-      A.paint(1 - visLeft[ly] / L.pic.ringSize[ly]);
+      A.paint(1 - visLeft[ly] / L.pic.ringSize[ly], s.x1);
       const hex = COL(s.c);
       FX.ring(FX.world, s.x1, s.y1, hex, lay.pc * 0.3, lay.pc * 0.85, 240, 3);
       for (let k = 0; k < 2; k++) {
@@ -606,7 +607,7 @@
     const p = slotPos(S.slots.length - 1);
     FX.ring(FX.world, p.x, p.y, '#3fdc86', lay.slotR * 0.5, lay.slotR * 2, 500, 6);
     FX.sparkles(FX.world, p.x, p.y, 8, lay.slotR);
-    A.merge();
+    A.merge(p.x);
     return true;
   };
   G.resume = function () { if (status === 'lost') { status = 'play'; tickAcc = 0; lastInput = clock; } };
@@ -625,7 +626,7 @@
       C.markPainted(L, S, c);
       paintedAt[c] = clock + 60 + ((c % pic.w) + ((c / pic.w) | 0)) * 16;
     }
-    status = 'won'; hintId = handId = -1; pickMode = false; JT.UI.setPick(false); JT.UI.toast('');
+    status = 'won'; wonAt = clock; hintId = handId = -1; pickMode = false; JT.UI.setPick(false); JT.UI.toast('');
     visLeft.fill(0); visRing = pic.rings;
     after(560, beginWin);
     return true;
@@ -657,7 +658,7 @@
       const ft = clock - ringFlash;
       if (ft < 500) { ctx.strokeStyle = 'rgba(255,255,255,' + (0.85 * (1 - ft / 500)) + ')'; ctx.lineWidth = pc * 1.05; ctx.stroke(); }
       ctx.setLineDash([per * 0.14, per * 0.86]); ctx.lineDashOffset = -((clock * 0.00042 * per) % per);
-      ctx.strokeStyle = 'rgba(255,90,150,0.85)'; ctx.lineWidth = pc * 0.2; ctx.stroke();
+      ctx.strokeStyle = 'rgba(226,122,130,0.92)'; ctx.lineWidth = pc * 0.2; ctx.stroke();
       ctx.setLineDash([]);
     }
     for (let i = 0; i < pic.total; i++) {
@@ -692,7 +693,7 @@
     const cy = lay.stripY + lay.stripH * 0.55;
     let ts = Math.min(5.4 * u, lay.stripH * 0.6), gapX = 3.2 * u, widths, total;
     const measure = () => {
-      ctx.font = '800 ' + (ts * 0.92) + 'px "Baloo 2", system-ui, sans-serif';
+      ctx.font = '900 ' + (ts * 0.86) + 'px Nunito, system-ui, sans-serif';
       widths = list.map(it => { const n = left[it.c] || 0; return ts + ts * 0.22 + (n ? ctx.measureText('×' + n).width : ts * 0.8); });
       total = widths.reduce((a, b) => a + b, 0) + gapX * (list.length - 1);
     };
@@ -717,7 +718,7 @@
       ctx.globalAlpha = 1;
       if (n) { ctx.fillStyle = R.INK; ctx.fillText('×' + n, tx, cy + ts * 0.07); }
       else {
-        ctx.strokeStyle = '#1ea65a'; ctx.lineWidth = ts * 0.16; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        ctx.strokeStyle = '#5a8a6b'; ctx.lineWidth = ts * 0.16; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
         ctx.beginPath(); ctx.moveTo(tx, cy); ctx.lineTo(tx + ts * 0.25, cy + ts * 0.25); ctx.lineTo(tx + ts * 0.7, cy - ts * 0.28); ctx.stroke();
       }
       x += widths[k] + gapX;
@@ -734,8 +735,8 @@
     const glow = Math.max(alarm, danger);
     if (glow > 0.02) {
       U.rr(ctx, lay.rackX - 1, lay.rackY - 1, lay.rackW + 2, lay.rackH + 2, lay.rackH / 2);
-      ctx.strokeStyle = 'rgba(255,70,95,' + glow + ')'; ctx.lineWidth = 0.9 * u; ctx.stroke();
-      ctx.strokeStyle = 'rgba(255,70,95,' + glow * 0.3 + ')'; ctx.lineWidth = 2.4 * u; ctx.stroke();
+      ctx.strokeStyle = 'rgba(214,92,92,' + glow + ')'; ctx.lineWidth = 0.9 * u; ctx.stroke();
+      ctx.strokeStyle = 'rgba(214,92,92,' + glow * 0.3 + ')'; ctx.lineWidth = 2.4 * u; ctx.stroke();
     }
     const ox = alarm > 0 ? Math.sin(at * 0.08) * u * 0.9 * alarm : 0;
     for (let i = 0; i < n; i++) {
@@ -744,9 +745,9 @@
         if (i === landing && !inbound(i)) {
           const bob = Math.sin(clock * 0.008) * u * 0.7, ay = lay.rackY - 1.2 * u + bob, s = 1.8 * u;
           ctx.beginPath(); ctx.moveTo(p.x - s, ay - s * 1.1); ctx.lineTo(p.x + s, ay - s * 1.1); ctx.lineTo(p.x, ay + s * 0.4); ctx.closePath();
-          ctx.fillStyle = '#ff6aa6'; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 0.7 * u; ctx.lineJoin = 'round'; ctx.stroke(); ctx.fill();
+          ctx.fillStyle = '#e27a82'; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 0.7 * u; ctx.lineJoin = 'round'; ctx.stroke(); ctx.fill();
           ctx.beginPath(); ctx.arc(p.x, p.y + R0 * 0.12, R0 * (0.78 + 0.05 * Math.sin(clock * 0.008)), 0, U.TAU);
-          ctx.strokeStyle = 'rgba(255,106,166,0.5)'; ctx.lineWidth = 0.6 * u; ctx.setLineDash([u * 1.6, u * 1.6]); ctx.lineDashOffset = -clock * 0.02; ctx.stroke(); ctx.setLineDash([]);
+          ctx.strokeStyle = 'rgba(226,122,130,0.55)'; ctx.lineWidth = 0.6 * u; ctx.setLineDash([u * 1.6, u * 1.6]); ctx.lineDashOffset = -clock * 0.02; ctx.stroke(); ctx.setLineDash([]);
         }
         continue;
       }

@@ -72,11 +72,13 @@
   // Album: 5 themed pages x 6 pictures; level N uses picture N in this order.
   // bg: the page's backdrop (top, middle, bottom of the gradient, then the dot tint), so each page feels like a new place.
   const ALBUM = [
-    { key: 'sunny', en: 'Sunny Day', name: 'Ngày nắng', pics: ['heart', 'cat', 'fish', 'flower', 'mushroom', 'icecream'], bg: ['#ffe7c6', '#ffcbd0', '#ffa6c7', '#fff1e6'] },
-    { key: 'trip', en: 'Adventure', name: 'Phiêu lưu', pics: ['rocket', 'house', 'balloon', 'sailboat', 'bus', 'lighthouse'], bg: ['#e4f4ff', '#c3defc', '#a9bdf5', '#f2f8ff'] },
-    { key: 'bakery', en: 'Bakery', name: 'Tiệm bánh', pics: ['cupcake', 'watermelon', 'candy', 'cake', 'donut', 'lollipop'], bg: ['#fff0e2', '#ffd9e4', '#f7b3d0', '#fff6ee'] },
-    { key: 'ocean', en: 'Ocean', name: 'Đại dương', pics: ['whale', 'starfish', 'turtle', 'octopus', 'crab', 'jellyfish'], bg: ['#e0fbf6', '#b1ebec', '#86cfe3', '#effffc'] },
-    { key: 'forest', en: 'Forest', name: 'Rừng xanh', pics: ['owl', 'fox', 'rabbit', 'bee', 'pine', 'violet'], bg: ['#f3fbe2', '#d3efc4', '#a8d9a9', '#f8fff0'] }
+    // bg: soft paper colours (top, middle, bottom, glow tint) behind the page's levels, pale enough that the
+    // porcelain cards and the jelly colours always lead
+    { key: 'sunny', en: 'Sunny Day', name: 'Ngày nắng', pics: ['heart', 'cat', 'fish', 'flower', 'mushroom', 'icecream'], bg: ['#fdf3e7', '#f9e3d9', '#f2cfcd', '#fff7ef'] },
+    { key: 'trip', en: 'Adventure', name: 'Phiêu lưu', pics: ['rocket', 'house', 'balloon', 'sailboat', 'bus', 'lighthouse'], bg: ['#eef5fa', '#dde9f4', '#c9d9ee', '#f6faff'] },
+    { key: 'bakery', en: 'Bakery', name: 'Tiệm bánh', pics: ['cupcake', 'watermelon', 'candy', 'cake', 'donut', 'lollipop'], bg: ['#fdf1ea', '#f7e0e1', '#ecc9d3', '#fff6f2'] },
+    { key: 'ocean', en: 'Ocean', name: 'Đại dương', pics: ['whale', 'starfish', 'turtle', 'octopus', 'crab', 'jellyfish'], bg: ['#eef8f5', '#d9eeea', '#c1e0de', '#f4fffc'] },
+    { key: 'forest', en: 'Forest', name: 'Rừng xanh', pics: ['owl', 'fox', 'rabbit', 'bee', 'pine', 'violet'], bg: ['#f5f8ec', '#e3ecd7', '#cddfc3', '#fbfdf4'] }
   ];
   const ALBUM_ORDER = ALBUM.reduce((a, pg) => a.concat(pg.pics), []);
 

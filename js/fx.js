@@ -77,7 +77,7 @@
     }
   };
   FX.confetti = function (x, y, n, angle, spread, power) {
-    const CONFETTI = ['R', 'O', 'Y', 'G', 'B', 'P', 'K', 'S'].map(k => JT.Core.PALETTE[k].hex);   // the game's own candy colours
+    const CONFETTI = ['#f29a9c', '#f6c96b', '#9cc8a9', '#9dbfe4', '#b8acdf', '#fffaf4', '#e27a82'];   // the theme's soft rose, honey, sage, sky, lilac and porcelain
     for (let i = 0; i < n; i++) {
       const a = angle + U.rand(-spread, spread), v = power * U.rand(0.45, 1);
       FX.top.add({ shape: 'rect', x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, g: 0.0012, drag: 0.972,
@@ -135,8 +135,8 @@
       ctx.save();
       ctx.globalAlpha = p < 0.7 ? 1 : 1 - (p - 0.7) / 0.3;
       ctx.translate(t.x, t.y - t.rise * E.outCubic(p)); ctx.rotate(t.rot); ctx.scale(sc, sc);
-      ctx.font = '800 ' + t.size + 'px "Baloo 2", system-ui, sans-serif';
-      ctx.lineWidth = Math.max(3, t.size * 0.24); ctx.strokeStyle = t.stroke; ctx.strokeText(t.str, 0, 0);
+      ctx.font = '900 ' + t.size + 'px Nunito, system-ui, sans-serif';
+      ctx.lineWidth = Math.max(3, t.size * 0.2); ctx.strokeStyle = t.stroke; ctx.strokeText(t.str, 0, 0);
       ctx.fillStyle = t.fill; ctx.fillText(t.str, 0, 0);
       ctx.restore();
     }
