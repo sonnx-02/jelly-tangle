@@ -10,8 +10,10 @@
 </style>
 <h1>Level baker</h1>
 <p>For each level this searches generator attempts until one is solvable and its random-bot fail rate sits in the level's band
-(easy 0–25%, normal 25–55%, hard 55–85%). The exact level is then stored as data, re-loaded, and solved again to prove the
-stored copy is the level that was tested. <b>Bake</b> writes <code>js/level-data.js</code> (needs <code>python tools/dev_server.py</code>).</p>
+(easy 0–25%, normal 25–55%, hard 55–85%, super 85–95%, or the level's own <code>target</code>). The exact level is then stored
+as data, re-loaded, and solved again to prove the stored copy is the level that was tested. Hand-made levels
+(<code>designed: true</code> in <code>js/core.js</code>, brought in by <code>tools/import_levels.py</code>) are kept as they are,
+after the same check. <b>Bake</b> writes <code>js/level-data.js</code> (needs <code>python tools/dev_server.py</code>).</p>
 <p>Levels <input id="n" type="number" value="60" min="1" max="300">
 Bot runs <input id="runs" type="number" value="60">
 Max attempts <input id="att" type="number" value="240">
@@ -19,6 +21,7 @@ Max attempts <input id="att" type="number" value="240">
 <table id="tbl"><tr><th>level</th><th>picture</th><th>band</th><th>attempt</th><th>bot fail</th><th>worms</th><th>solution</th><th>stored copy</th></tr></table>
 <script src="../js/util.js"></script>
 <script src="../js/core.js"></script>
+<script src="../js/level-data.js"></script>
 <script>
 (function () {
   const C = JT.Core, $ = id => document.getElementById(id);
@@ -36,9 +39,16 @@ Max attempts <input id="att" type="number" value="240">
           .catch(e => { B.saved = { ok: false, error: String(e) }; $('msg').textContent = 'could not save (is tools/dev_server.py running?): ' + e; });
         return;
       }
-      const cfg = C.levelCfg(i), L = C.buildLevel(i, { runs: runs, attempts: attempts });
+      const cfg = C.levelCfg(i), kept = cfg.designed && (JT.LEVEL_DATA || [])[i];
+      const L = kept ? null : C.buildLevel(i, { runs: runs, attempts: attempts });
       let row = { i: i, pic: cfg.pic, band: cfg.band, attempt: -1 }, okCopy = false;
-      if (L) {
+      if (kept) {
+        // a hand-made level: keep it, but only if it still loads for this box and still has a solution
+        const L2 = C.levelFromData(i, kept), sol = L2 && C.solve(L2, 60000);
+        okCopy = !!sol;
+        if (okCopy) levels.push(kept);
+        row = { i: i, pic: cfg.pic, band: cfg.band, attempt: 'designed', fail: kept.fr, worms: kept.h.length, sol: sol ? sol.length : 0 };
+      } else if (L) {
         const d = JSON.parse(JSON.stringify(C.levelToData(L)));
         const L2 = C.levelFromData(i, d), sol = L2 && C.solve(L2, 60000);
         okCopy = !!sol && C.failRate(L2, runs, L.meta.seed ^ 0xabcdef) === L.meta.failRate;

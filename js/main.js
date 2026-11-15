@@ -145,7 +145,7 @@
       const next = () => {
         if (queue.length) { queue.shift()(next); return; }
         G.paused = false;
-        if (L.meta.band === 'hard') UI.banner(T('hard'));
+        if (L.meta.band === 'hard' || L.meta.band === 'super') UI.banner(T(L.meta.band === 'super' ? 'superHard' : 'hard'));
       };
       setTimeout(next, 330);
     });

@@ -43,8 +43,10 @@ Repo là một trang tĩnh nên cũng đẩy nguyên thư mục lên được Ne
 
 Hộp sâu nằm ngang: 8×6 ô (một số màn 7×6, màn 1 là 6×5).
 
-Cơ chế mở dần: sâu nằm đè (màn 9), kẹo bọc giấy (màn 11), sâu chóng mặt (màn 13), pha màu (màn 15).
+Màn 1–10 là màn thiết kế tay (bộ màn của nhóm, xem "Nướng màn chơi"); từ màn 11 là màn sinh tự động.
+Cơ chế mở dần: sâu nằm đè (màn 3), kẹo bọc giấy (màn 6), sâu chóng mặt (màn 9), pha màu (màn 15).
 Trợ giúp mở dần: Gợi ý (màn 3), Kẹp gắp (màn 5), Thêm ô (màn 7).
+Màn khó có nhãn đỏ "KHÓ"; màn 10 là màn "SIÊU KHÓ" (bot chơi ngẫu nhiên thua khoảng 88%).
 
 ## Cấu trúc
 
@@ -52,7 +54,7 @@ Trợ giúp mở dần: Gợi ý (màn 3), Kẹp gắp (màn 5), Thêm ô (màn 
 index.html              trang duy nhất
 css/style.css           HUD, trang chủ, popup (mọi kích thước theo --u = 1% bề ngang cột game)
 js/core.js              luật chơi, bộ sinh màn, solver, bot đo độ khó; không đụng DOM
-js/level-data.js        60 màn đã nướng sẵn (file sinh ra, không sửa tay)
+js/level-data.js        60 màn có sẵn: 10 màn thiết kế + 50 màn nướng (file sinh ra, không sửa tay)
 js/levels.js            nạp màn: lấy từ dữ liệu nướng, ngoài bảng thì sinh lúc chạy
 js/game.js              màn chơi: hoạt ảnh, nhập liệu, hướng dẫn, trình tự thắng thua
 js/render.js            nét vẽ Canvas 2D: sâu kẹo dẻo, viên jelly, ô tranh, khay
@@ -63,6 +65,7 @@ js/main.js              khởi động, vòng lặp, luồng màn hình, kinh t�
 js/i18n.js              chuỗi Tiếng Việt và English
 js/util.js              toán, easing, màu, lưu tiến trình (localStorage)
 tools/levels.html       công cụ nướng màn
+tools/import_levels.py  nhập bộ màn thiết kế (file JSON) vào js/level-data.js
 tools/dev_server.py     server dev
 ```
 
@@ -70,13 +73,25 @@ Chỉ có một file ảnh: bàn tay chỉ hướng dẫn (`assets/hand.png`, 11
 
 ## Nướng màn chơi
 
-Mỗi màn được sinh ngẫu nhiên theo cấu hình trong `LEVELS` (`js/core.js`), rồi phải qua hai bài kiểm tra: solver tìm được lời giải, và tỉ lệ thua của bot chơi ngẫu nhiên nằm trong dải độ khó của màn (dễ 0–25%, thường 25–55%, khó 55–85%). Màn đạt yêu cầu được **lưu nguyên dạng dữ liệu**, nạp lại và giải lại lần nữa để chắc chắn bản lưu đúng là bản đã kiểm tra.
+Mỗi màn được sinh ngẫu nhiên theo cấu hình trong `LEVELS` (`js/core.js`), rồi phải qua hai bài kiểm tra: solver tìm được lời giải, và tỉ lệ thua của bot chơi ngẫu nhiên nằm trong dải độ khó của màn (dễ 0–25%, thường 25–55%, khó 55–85%, siêu khó 85–95%, hoặc dải `target` riêng của màn). Màn đạt yêu cầu được **lưu nguyên dạng dữ liệu**, nạp lại và giải lại lần nữa để chắc chắn bản lưu đúng là bản đã kiểm tra.
 
 Sau khi sửa `LEVELS`, `PICS` hay luật trong `core.js`:
 
 1. Chạy `python tools/dev_server.py`.
 2. Mở http://localhost:5180/tools/levels.html và bấm **Bake**.
 3. Công cụ ghi lại `js/level-data.js`. Nếu có màn không đạt thì không ghi gì cả.
+
+### Màn thiết kế tay (màn 1–10)
+
+Màn 1–10 lấy từ bộ màn của nhóm (file JSON: mỗi màn có mô tả dễ đọc và bản `baked` đúng định dạng `JT.LEVEL_DATA`). Nhập bằng:
+
+```
+python tools/import_levels.py duong/dan/jelly_tangle_levels_1-10.json
+```
+
+- Công cụ kiểm tra bản `baked` khớp với phần mô tả (kích thước hộp, số ô khay, tranh, từng con sâu: màu, lượng màu, ô, hướng đầu, ai đè ai), rồi thay đúng các màn có trong file; các màn khác giữ nguyên.
+- Bộ màn vẽ hộp dọc (5×6, 6×7, 6×8) theo bố cục cũ, nên mỗi màn được **xoay một góc vuông** sang hộp ngang (6×5, 7×6, 8×6), hướng đầu sâu và hướng quay của sâu chóng mặt xoay theo. Câu đố không đổi: solver ra đúng lời giải ghi trong file, tỉ lệ thua của bot trùng khớp tuyệt đối với hộp gốc (cùng seed, 3000 lượt). Muốn giữ hộp dọc thì thêm `--keep-orientation`.
+- `LEVELS[0..9]` trong `js/core.js` mang `designed: true` và `target` (dải tỉ lệ thua trong file). Kích thước hộp, số ô khay và tranh ở đó phải khớp dữ liệu, nếu không game sẽ bỏ dữ liệu và tự sinh màn khác. Khi **Bake**, `tools/levels.html` giữ nguyên các màn `designed` (sau khi giải lại để chắc chúng vẫn qua được) và chỉ sinh lại các màn còn lại.
 
 Lưu ý: bộ sinh màn từng dùng phép sắp xếp với bộ so sánh ngẫu nhiên, khiến cùng một seed có thể ra màn khác nhau tuỳ thời điểm chạy. Bộ so sánh đã được sửa cho nhất quán, và game không còn dựng màn từ seed nữa mà đọc thẳng dữ liệu đã nướng.
 
@@ -103,6 +118,6 @@ JT.Save.reset()               // xoá tiến trình
 
 ## Trạng thái
 
-Đã có: 60 màn, 30 tranh trong 5 trang bộ sưu tập, 4 cơ chế nâng cao, 3 trợ giúp, sao, xu, hướng dẫn màn đầu, hai ngôn ngữ, lưu tiến trình.
+Đã có: 60 màn (10 màn đầu thiết kế tay), 30 tranh trong 5 trang bộ sưu tập, 4 cơ chế nâng cao, 3 trợ giúp, sao, xu, hướng dẫn màn đầu, hai ngôn ngữ, lưu tiến trình.
 
 Chưa có: quảng cáo và mua trong ứng dụng (giá xu hiện chỉ để minh hoạ), service worker cho chơi offline, tệp font đóng gói sẵn (đang tải Baloo 2 và Nunito từ Google Fonts).

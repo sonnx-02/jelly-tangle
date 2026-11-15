@@ -63,9 +63,9 @@
     const d = Save.data, cfg = C.levelCfg(d.level), pic = C.picInfo(cfg.pic);
     UI.setCoins(d.coins);
     $('hStars').textContent = Save.totalStars();
-    const rb = $('hLevel');
-    rb.textContent = T('level') + ' ' + (d.level + 1) + (cfg.band === 'hard' ? ' · ' + T('hardTag') : '');
-    rb.className = 'ribbon' + (cfg.band === 'hard' ? ' red' : '');
+    const rb = $('hLevel'), tag = bandTag(cfg.band);
+    rb.textContent = T('level') + ' ' + (d.level + 1) + (tag ? ' · ' + tag : '');
+    rb.className = 'ribbon' + (tag ? ' red' : '');
     $('hPicName').textContent = JT.I18n.picName(pic);
     $('hAlbumN').textContent = d.album.length + '/' + C.ALBUM_ORDER.length;
     drawPic($('hPic'), pic, false);
@@ -75,10 +75,12 @@
     ctx.clearRect(0, 0, cv.width, cv.height);
     R.picture(ctx, pic, 0, 0, s, painted);
   }
+  // hard and super hard levels get a red tag ('KHÓ' / 'SIÊU KHÓ'); the others none
+  const bandTag = band => (band === 'super' ? T('superTag') : band === 'hard' ? T('hardTag') : '');
   UI.setLevel = function (idx, L) {
     $('lvlText').textContent = T('level') + ' ' + (idx + 1);
     $('lvlName').textContent = JT.I18n.picName(L.pic);
-    $('levelPill').classList.toggle('hard', L.meta.band === 'hard');
+    $('levelPill').classList.toggle('hard', !!bandTag(L.meta.band));
   };
   UI.setCoins = function (n) { document.querySelectorAll('.coinVal').forEach(e => { e.textContent = n; }); };
   function coinIcon() { return document.querySelector((JT.App.state === 'game' ? '#hud' : '#home') + ' .coinPill .coinIco'); }
