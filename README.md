@@ -102,7 +102,7 @@ tools/android/          build_apk.py: dựng file APK
 android/                bản Android: AndroidManifest, MainActivity (WebView), icon, màn chờ
 ```
 
-Không có file ảnh hay âm thanh nào: toàn bộ hình là vẽ thủ tục trên Canvas, âm thanh là tổng hợp.
+Chỉ có một file ảnh: bàn tay chỉ hướng dẫn (`assets/hand.png`, 115×145). Còn lại toàn bộ hình là vẽ thủ tục trên Canvas, âm thanh là tổng hợp, không có file âm thanh nào.
 
 ## Nướng màn chơi
 

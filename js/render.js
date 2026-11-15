@@ -305,22 +305,29 @@
     ctx.restore();
   };
 
-  // tutorial hand; (x, y) is the fingertip
-  R.hand = function (ctx, x, y, s, press) {
-    ctx.save(); ctx.translate(x, y); ctx.rotate(-0.42); ctx.scale(s / 40 * (1 - press * 0.1), s / 40 * (1 - press * 0.1));
-    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-    const shape = () => {
-      ctx.beginPath();
-      ctx.moveTo(-6, 4); ctx.quadraticCurveTo(-6, -3, 0, -3); ctx.quadraticCurveTo(6, -3, 6, 4);
-      ctx.lineTo(6, 20); ctx.quadraticCurveTo(22, 18, 25, 28); ctx.lineTo(25, 40);
-      ctx.quadraticCurveTo(24, 54, 10, 54); ctx.lineTo(2, 54);
-      ctx.quadraticCurveTo(-8, 54, -13, 44); ctx.lineTo(-19, 32);
-      ctx.quadraticCurveTo(-20, 26, -14, 26); ctx.quadraticCurveTo(-9, 26, -6, 32);
-      ctx.closePath();
-    };
-    ctx.translate(2, 5); shape(); ctx.fillStyle = 'rgba(40,10,0,0.25)'; ctx.fill(); ctx.translate(-2, -5);
-    shape(); ctx.fillStyle = '#ffffff'; ctx.fill(); ctx.strokeStyle = INK; ctx.lineWidth = 3.4; ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(11, 26); ctx.lineTo(11, 33); ctx.moveTo(18, 28); ctx.lineTo(18, 34); ctx.lineWidth = 2.6; ctx.stroke();
+  // ---------- tutorial hand ----------
+  // The glove picture (assets/hand.png, 115 x 145, finger up and to the left). It is resampled once per size into a
+  // cached canvas with its soft shadow baked in, so a frame only copies pixels; tipX/tipY is the fingertip in it.
+  const HAND = { img: new Image(), w: 115, h: 145, tipX: 15, tipY: 6, cv: null, px: 0, k: 1, pad: 0 };
+  HAND.img.src = 'assets/hand.png';
+  function handSprite(h) {
+    const px = Math.max(8, Math.round(h * R.dpr));   // glove height in device pixels
+    if (HAND.cv && HAND.px === px) return HAND.cv;
+    const k = px / HAND.h, pad = Math.ceil(px * 0.1), cv = HAND.cv || (HAND.cv = document.createElement('canvas'));
+    cv.width = Math.ceil(HAND.w * k) + pad * 2; cv.height = px + pad * 2;
+    const c = cv.getContext('2d');
+    c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high';
+    c.shadowColor = 'rgba(60,20,10,0.3)'; c.shadowBlur = px * 0.05; c.shadowOffsetX = px * 0.015; c.shadowOffsetY = px * 0.04;
+    c.drawImage(HAND.img, pad, pad, HAND.w * k, px);
+    HAND.px = px; HAND.k = k; HAND.pad = pad;
+    return cv;
+  }
+  // (x, y) is the fingertip, h the glove's height; press 0..1 squashes it a little towards the fingertip
+  R.hand = function (ctx, x, y, h, press) {
+    if (!HAND.img.complete || !HAND.img.naturalWidth) return;   // still loading: no hand this frame
+    const cv = handSprite(h), sc = (1 - press * 0.1) / R.dpr;
+    ctx.save(); ctx.translate(x, y); ctx.scale(sc, sc);
+    ctx.drawImage(cv, -(HAND.pad + HAND.tipX * HAND.k), -(HAND.pad + HAND.tipY * HAND.k));
     ctx.restore();
   };
 })();

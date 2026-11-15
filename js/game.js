@@ -891,7 +891,7 @@
     const ph = (clock % 1100) / 1100, press = ph < 0.5 ? Math.sin(ph * 2 * Math.PI) : 0;
     const x = sx(m.x), y = sy(m.y);
     if (ph < 0.5) { ctx.beginPath(); ctx.arc(x, y, lay.cell * (0.25 + ph * 1.1), 0, U.TAU); ctx.strokeStyle = 'rgba(255,255,255,' + (0.9 - ph * 1.8) + ')'; ctx.lineWidth = u; ctx.stroke(); }
-    R.hand(ctx, x + (1 - press) * u * 1.6, y + (1 - press) * u * 2.2, 11 * u, press);
+    R.hand(ctx, x + (1 - press) * u * 1.6, y + (1 - press) * u * 2.2, 16 * u, press);
   }
 
   G.draw = function (ctx) {
