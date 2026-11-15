@@ -38,9 +38,9 @@ Repo là một trang tĩnh nên cũng đẩy nguyên thư mục lên được Ne
 python tools/android/build_apk.py
 ```
 
-Ra file `dist/JellyTangle-1.1.3-debug.apk` (khoảng 300 KB, phần lớn là font và ảnh bàn tay). Script dùng thẳng công cụ của Android SDK (aapt2, javac, d8, zipalign, apksigner), không qua Gradle nên không tải thêm gì. SDK và JDK 17 lấy từ `ANDROID_HOME` / `JAVA_HOME`; nếu không đặt, script tự tìm trong bản Unity có cài Android Build Support (`C:\Program Files\Unity\Hub\Editor\<bản>\...\AndroidPlayer`).
+Ra file `dist/JellyTangle-1.1.4-debug.apk` (khoảng 300 KB, phần lớn là font và ảnh bàn tay). Script dùng thẳng công cụ của Android SDK (aapt2, javac, d8, zipalign, apksigner), không qua Gradle nên không tải thêm gì. SDK và JDK 17 lấy từ `ANDROID_HOME` / `JAVA_HOME`; nếu không đặt, script tự tìm trong bản Unity có cài Android Build Support (`C:\Program Files\Unity\Hub\Editor\<bản>\...\AndroidPlayer`).
 
-Cài lên máy: cắm điện thoại rồi chạy `adb install -r dist/JellyTangle-1.1.3-debug.apk`, hoặc chép file APK sang máy và mở (cho phép "cài ứng dụng không rõ nguồn gốc"). Khoá debug nằm ở `tools/android/keys/` (không đưa lên git) và được dùng lại, nên bản build sau cài đè lên bản trước được.
+Cài lên máy: cắm điện thoại rồi chạy `adb install -r dist/JellyTangle-1.1.4-debug.apk`, hoặc chép file APK sang máy và mở (cho phép "cài ứng dụng không rõ nguồn gốc"). Khoá debug nằm ở `tools/android/keys/` (không đưa lên git) và được dùng lại, nên bản build sau cài đè lên bản trước được.
 
 Bản phát hành ký bằng khoá riêng của bạn (mật khẩu truyền qua biến môi trường, không ghi ra dòng lệnh):
 
@@ -197,7 +197,7 @@ Nhạc nền là đàn kalimba chậm (84 bpm) trên nền bass sin mềm, đi q
 
 Chạm **5 lần liên tiếp** (mỗi lần cách nhau dưới 0,6 giây) vào chữ "Level N" ("Màn N" khi chơi tiếng Việt): ở thanh trên cùng khi đang chơi, hoặc ở ruy-băng của thẻ màn ngoài trang chủ. Bản web và bản APK đều có bảng này. Bảng mở ra như một popup của game và game tạm dừng trong lúc mở.
 
-- **Màn chơi:** thông tin màn đang chọn (tranh, hộp, số ô khay, số sâu, số màu, độ khó, tỉ lệ thua của bot, màn thiết kế hay sinh tự động, cơ chế có trong màn) và **lời giải** theo số thứ tự sâu. Chọn màn bất kỳ (±1, ±10) rồi chơi (đi tới màn sau mức đang mở thì mở khoá luôn tới đó). Trong màn: thắng ngay với 3/2/1 sao, thua ngay (kẹt khay / hết nước), chơi lại, Gợi ý / Kẹp gắp / +1 ô khay miễn phí. **Tự chơi** theo bộ Gợi ý: chỉ màn này, hoặc liên tục từ màn này sang màn khác (tự bấm qua các popup). Công tắc: chạm nhầm không mất sao, hiện số trên sâu (số dùng trong lời giải và trong file màn).
+- **Màn chơi:** thông tin màn đang chọn (tranh, hộp, số ô khay, số sâu, số màu, độ khó, tỉ lệ thua của bot, màn thiết kế hay sinh tự động, cơ chế có trong màn) và **lời giải** theo số thứ tự sâu. Chọn màn bất kỳ (±1, ±10) rồi chơi (đi tới màn sau mức đang mở thì mở khoá luôn tới đó), hoặc **mở khoá mọi màn** một lần, để bộ sưu tập mở hết các thẻ (nút này có cả ở tab Hệ thống). Trong màn: thắng ngay với 3/2/1 sao, thua ngay (kẹt khay / hết nước), chơi lại, Gợi ý / Kẹp gắp / +1 ô khay miễn phí. **Tự chơi** theo bộ Gợi ý: chỉ màn này, hoặc liên tục từ màn này sang màn khác (tự bấm qua các popup). Công tắc: chạm nhầm không mất sao, hiện số trên sâu (số dùng trong lời giải và trong file màn).
 - **Kho đồ:** cộng / đặt lại xu, thêm bớt từng trợ giúp, mở khoá mọi trợ giúp, trợ giúp vô hạn.
 - **Hệ thống:** tốc độ game (¼× đến 4×), hiện FPS, mở khoá mọi màn, hoàn thành bộ sưu tập, xem lại hướng dẫn (hướng dẫn màn 1, mẹo, giới thiệu cơ chế hiện lại), xoá tiến trình (chạm 2 lần), thông tin thiết bị (web hay APK, kích thước, DPR, Hz).
 

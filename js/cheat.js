@@ -147,6 +147,8 @@
       head('ch_goTo') +
       '<div class="chStep">' + step(-10) + step(-1) + '<div class="val"><b>' + (sel + 1) + '</b><small>' + JT.I18n.picName(pic) + '</small></div>' + step(1) + step(10) + '</div>' +
       '<button class="btn sm" data-act="go">' + T('ch_play', { n: sel + 1 }) + '</button>' +
+      // also under System → Progress; here too because this is the tab the panel opens on
+      chip('wide', 'openAll', T('ch_openAll'), '', Save.data.level >= JT.Levels.count() - 1) +
       head('ch_inLevel') +
       (off ? '<p class="chNote">' + T('ch_needLevel') + '</p>' : '') +
       '<div class="chGrid">' +
@@ -259,7 +261,7 @@
         Save.save(); UI.setBoosters(); render(); say(T('ch_msgBoost'));
         break;
       case 'openAll':
-        d.level = Math.max(d.level, JT.Levels.count() - 1); Save.save(); refreshHome();
+        d.level = Math.max(d.level, JT.Levels.count() - 1); Save.save(); refreshHome(); render();
         say(T('ch_msgOpen', { n: d.level + 1 }));
         break;
       case 'fillAlbum':
