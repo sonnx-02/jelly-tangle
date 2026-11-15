@@ -266,6 +266,71 @@ canvas#fx { pointer-events: none; z-index: 40; }
 .pageDots i.on { background: var(--pink); transform: scale(1.3); }
 .pageDots i.full { background: var(--green); }
 
+/* ---------- cheat panel (five taps on a level title, js/cheat.js) ---------- */
+.ribbon.dark { --a: #9583b8; --b: #5f4b8b; --l: #3d2d63; letter-spacing: .08em; }
+.card.cheat { height: 100%; padding: calc(var(--u) * 10) calc(var(--u) * 4.5) calc(var(--u) * 3); gap: calc(var(--u) * 2.4); text-align: left; }
+.card.cheat .chTabs { flex: none; }
+.chBody {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch;
+  display: flex; flex-direction: column; gap: calc(var(--u) * 2.2); margin: 0 calc(var(--u) * -2); padding: calc(var(--u) * .6) calc(var(--u) * 2) calc(var(--u) * 2);
+}
+.chH { margin-top: calc(var(--u) * 1.2); font: 900 calc(var(--u) * 3) var(--body); letter-spacing: .09em; text-transform: uppercase; color: var(--ink2); }
+.chNote { margin: 0; font: 800 calc(var(--u) * 3.2) / 1.3 var(--body); color: var(--ink2); }
+.chGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(var(--u) * 1.8); }
+.chGrid.two { grid-template-columns: repeat(2, 1fr); }
+.chGrid.four { grid-template-columns: repeat(4, 1fr); }
+.chip {
+  min-height: calc(var(--u) * 10.5); padding: calc(var(--u) * 1.2) calc(var(--u) * 1.2) calc(var(--u) * .7); border-radius: calc(var(--u) * 3.4);
+  font: 800 calc(var(--u) * 3.6) / 1.05 var(--display); color: var(--ink); text-align: center;
+  background: linear-gradient(#fffdf6, #f3e3c8); box-shadow: inset 0 calc(var(--u) * .5) 0 rgba(255,255,255,.9), 0 calc(var(--u) * .9) 0 var(--lip);
+  transition: transform .08s, box-shadow .08s;
+}
+.chip small { display: block; margin-top: calc(var(--u) * .4); font: 900 calc(var(--u) * 2.5) var(--body); opacity: .75; }
+.chip:active { transform: translateY(calc(var(--u) * .7)); box-shadow: inset 0 calc(var(--u) * .5) 0 rgba(255,255,255,.9), 0 calc(var(--u) * .2) 0 var(--lip); }
+.chip.gold { background: linear-gradient(#ffe892, #ffc93c); box-shadow: inset 0 calc(var(--u) * .5) 0 rgba(255,255,255,.6), 0 calc(var(--u) * .9) 0 var(--goldd); color: #6a3d00; }
+.chip.red { background: linear-gradient(#ff9fac, #f9677b); box-shadow: inset 0 calc(var(--u) * .5) 0 rgba(255,255,255,.45), 0 calc(var(--u) * .9) 0 var(--redd); color: #fff; text-shadow: 0 calc(var(--u) * .4) 0 rgba(0,0,0,.18); }
+.chip.blue { background: linear-gradient(#9dd8ff, #56aef5); box-shadow: inset 0 calc(var(--u) * .5) 0 rgba(255,255,255,.45), 0 calc(var(--u) * .9) 0 var(--blued); color: #fff; text-shadow: 0 calc(var(--u) * .4) 0 rgba(0,0,0,.18); }
+.chip.green { background: linear-gradient(#8cf2b8, #3fd884); box-shadow: inset 0 calc(var(--u) * .5) 0 rgba(255,255,255,.45), 0 calc(var(--u) * .9) 0 var(--greend); color: #fff; text-shadow: 0 calc(var(--u) * .4) 0 rgba(0,0,0,.18); }
+.chip.wide { width: 100%; }
+.chip[disabled] { opacity: .38; filter: grayscale(.6); pointer-events: none; }
+.chInfo { display: flex; align-items: center; gap: calc(var(--u) * 3); padding: calc(var(--u) * 2.4); border-radius: calc(var(--u) * 4); background: #fff3dd; box-shadow: inset 0 0 0 calc(var(--u) * .6) #f0dcb8; }
+.chInfo canvas { flex: none; width: calc(var(--u) * 17); height: calc(var(--u) * 17); border-radius: calc(var(--u) * 2.4); background: #e9d3b1; padding: calc(var(--u) * .6); }
+.chInfo > div { min-width: 0; }
+.chInfo b { display: block; margin-bottom: calc(var(--u) * .6); font: 800 calc(var(--u) * 4.6) / 1.1 var(--display); }
+.chInfo span { display: block; font: 800 calc(var(--u) * 3.1) / 1.4 var(--body); color: var(--ink2); }
+.chInfo span.chTags { display: flex; flex-wrap: wrap; gap: calc(var(--u) * 1); margin-top: calc(var(--u) * 1); }
+.chTags i { padding: calc(var(--u) * .5) calc(var(--u) * 1.6) calc(var(--u) * .4); border-radius: calc(var(--u) * 2); background: #e9def8; color: #5f4b8b; font: 900 calc(var(--u) * 2.6) var(--body); font-style: normal; white-space: nowrap; }
+.chSol { padding: 0 calc(var(--u) * 1); font: 800 calc(var(--u) * 3.2) / 1.5 var(--body); color: var(--ink2); word-spacing: .08em; }
+.chSol b { display: block; color: var(--ink); font-weight: 900; }
+.chStep { display: grid; grid-template-columns: auto auto 1fr auto auto; gap: calc(var(--u) * 1.6); }
+.chStep .chip { min-width: calc(var(--u) * 10.5); }
+.chStep .val { min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: calc(var(--u) * 3.4); background: #fff; box-shadow: inset 0 0 0 calc(var(--u) * .6) #ead6b6; padding: calc(var(--u) * .8) calc(var(--u) * 1); }
+.chStep .val b { font: 800 calc(var(--u) * 6.4) / 1 var(--display); transform: translateY(6%); }
+.chStep .val small { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 900 calc(var(--u) * 2.7) var(--body); color: var(--ink2); }
+.card.cheat .btn.sm { flex: none; min-height: calc(var(--u) * 11.5); font-size: calc(var(--u) * 5); }
+.card.cheat .setRow { padding: 0 calc(var(--u) * .5); font-size: calc(var(--u) * 4.2); }
+.card.cheat .setRow.col { gap: calc(var(--u) * 1.4); }
+.card.cheat .seg button { padding-left: calc(var(--u) * 1); padding-right: calc(var(--u) * 1); font-size: calc(var(--u) * 3.8); }
+.chRow { display: flex; align-items: center; gap: calc(var(--u) * 1.8); }
+.chBi { flex: none; width: calc(var(--u) * 10); height: calc(var(--u) * 10); border-radius: calc(var(--u) * 3); display: grid; place-items: center; background: linear-gradient(var(--a), var(--b)); box-shadow: inset 0 calc(var(--u) * .5) 0 rgba(255,255,255,.5), 0 calc(var(--u) * .8) 0 var(--l); }
+.chBi svg { width: 64%; height: 64%; }
+.chBi[data-b="hint"] { --a: #ffe07a; --b: #ffbe2e; --l: #d68f0c; }
+.chBi[data-b="pick"] { --a: #ff9cc5; --b: #ff5c9d; --l: var(--pinkd); }
+.chBi[data-b="slot"] { --a: #8fd8ff; --b: #45a5f5; --l: var(--blued); }
+.chRow .nm { flex: 1; min-width: 0; font: 800 calc(var(--u) * 4.2) / 1.1 var(--display); }
+.chRow .nm small { display: block; font: 900 calc(var(--u) * 2.6) var(--body); color: var(--ink2); }
+.chRow .cnt { min-width: calc(var(--u) * 7); text-align: center; font: 800 calc(var(--u) * 5.2) var(--display); }
+.chRow .chip { min-height: calc(var(--u) * 9); min-width: calc(var(--u) * 9.5); padding-left: calc(var(--u) * .8); padding-right: calc(var(--u) * .8); }
+.chCoins { display: flex; align-items: center; gap: calc(var(--u) * 2.4); font: 800 calc(var(--u) * 8) var(--display); line-height: 1; }
+.chCoins i { position: static; width: calc(var(--u) * 9); height: calc(var(--u) * 9); margin: 0; }
+.chCoins b { transform: translateY(8%); font-variant-numeric: tabular-nums; }
+.chInfo.text span { font-variant-numeric: tabular-nums; }
+.chMsg { flex: none; min-height: calc(var(--u) * 4.4); text-align: center; font: 900 calc(var(--u) * 3.3) / 1.3 var(--body); color: var(--greend); opacity: 0; transition: opacity .2s; }
+.chMsg.show { opacity: 1; }
+/* which cheats are on: a small badge under the top bar, so a test run is never mistaken for the real game */
+#cheatBadge { position: absolute; right: calc(var(--u) * 3.4); top: calc(var(--st) + var(--u) * 15.5); z-index: 45; pointer-events: none; padding: calc(var(--u) * .9) calc(var(--u) * 2) calc(var(--u) * .6); border-radius: calc(var(--u) * 2); background: rgba(95,75,139,.9); color: #fff; font: 900 calc(var(--u) * 2.8) / 1 var(--body); letter-spacing: .04em; white-space: nowrap; box-shadow: 0 calc(var(--u) * .6) calc(var(--u) * 1.4) rgba(40,10,40,.3); }
+#modal.open ~ #cheatBadge { visibility: hidden; }   /* a popup covers the bars anyway; the badge would sit on its close button */
+
 #curtain { position: absolute; inset: 0; z-index: 35; pointer-events: none; background: radial-gradient(circle at 50% 45%, #ff8db8, #ff5c9d); clip-path: circle(0% at 50% 50%); transition: clip-path .38s cubic-bezier(.6,0,.4,1); }
 #curtain.shut { clip-path: circle(120% at 50% 50%); pointer-events: auto; }
 #boot { position: absolute; inset: 0; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--u) * 6); background: radial-gradient(circle at 50% 40%, #ffb6d2, #ff6aa6); transition: opacity .4s; }

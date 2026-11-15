@@ -10,8 +10,10 @@
     pick: { unlock: 4, grant: 2, pack: 2, price: 120 },
     slot: { unlock: 6, grant: 2, pack: 1, price: 100 }
   };
-  // scale: the most device pixels per CSS pixel the canvases may use; the frame meter below can lower it
-  const App = JT.App = { W: 0, H: 0, state: 'boot', cur: 0, scale: 2.5, COST: { slot: 100, pick: 120 }, PAGE_COINS: 150 };
+  // scale: the most device pixels per CSS pixel the canvases may use; the frame meter below can lower it.
+  // speed: game time per real time (the cheat panel's slow motion / fast forward)
+  const App = JT.App = { W: 0, H: 0, state: 'boot', cur: 0, scale: 2.5, speed: 1, COST: { slot: 100, pick: 120 }, PAGE_COINS: 150 };
+  const infinite = () => !!(Save.data.cheat && Save.data.cheat.infinite);   // cheat: boosters are never used up
   let world, wctx, fx, fctx, fpsEl, last = 0, bgCv = null, homeT = 0, fxDirty = false, fxShown = true;
 
   App.resize = function () {
@@ -134,7 +136,7 @@
     if (dt <= 0) return;
     paceFrame(now, dt);
     if (dt > 50) dt = 50;
-    App.step(dt);
+    App.step(dt * App.speed);
   }
 
   // ---------- flow ----------
@@ -197,7 +199,7 @@
     if (!free) {
       if (d.coins < App.COST[act]) return;
       d.coins -= App.COST[act];
-    } else if (act === 'slot') d.boosters.slot--;
+    } else if (act === 'slot' && !infinite()) d.boosters.slot--;
     Save.save(); UI.setCoins(d.coins); UI.setBoosters();
     UI.closeModal();
     G.resume();
@@ -212,7 +214,10 @@
     return false;
   };
   App.addCoins = function (n) { Save.data.coins += n; Save.save(); UI.setCoins(Save.data.coins); };
-  App.spendBooster = function (k) { const b = Save.data.boosters; b[k] = Math.max(0, b[k] - 1); Save.save(); UI.setBoosters(); };
+  App.spendBooster = function (k) {
+    if (infinite()) return;
+    const b = Save.data.boosters; b[k] = Math.max(0, b[k] - 1); Save.save(); UI.setBoosters();
+  };
   App.buyBooster = function (k) {
     const d = Save.data, b = JT.BOOST[k];
     if (d.coins < b.price) return;
@@ -229,6 +234,7 @@
     fctx = fx.getContext('2d');
     fpsEl = document.getElementById('fps');
     UI.init();
+    if (JT.Cheat) JT.Cheat.init();
     App.resize();
     initHome();
     window.addEventListener('resize', App.resize);

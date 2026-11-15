@@ -8,7 +8,9 @@
   const COL = R.COL;
   // TICK: one cell per jelly per tick. 120 ms keeps the squirting readable (it was 70 ms: a jar emptied before you could see it)
   const TICK = 120, SHOT = 240, FLY = 330;
-  const G = JT.Game = { paused: false };
+  // cheat: switches the cheat panel (js/cheat.js) sets. noMiss: blocked taps cost no star; ids: each worm's number
+  // on its tail; auto: 0 off, 1 play this level with the hint planner, 2 keep going level after level
+  const G = JT.Game = { paused: false, cheat: { noMiss: false, ids: false, auto: 0 } };
 
   let L = null, S = null, idx = 0, lay = null, layVer = 0;
   let clock = 0, tickAcc = 0, status = 'idle', misses = 0;
@@ -16,7 +18,7 @@
   let paintedAt = null, visLeft = null, visRing = 0, ringCells = null, ringColors = null;
   let ringFlash = -1e9, picPulse = -1e9, rackAlarm = -1e9, winT0 = -1;
   let revealed = null, rotAnim = {}, hintId = -1, handId = -1, pickMode = false;
-  let lastInput = 0, nextWiggle = 0, shake = { t0: -1e9, amp: 0, dur: 1 };
+  let lastInput = 0, nextWiggle = 0, autoAt = 0, shake = { t0: -1e9, amp: 0, dur: 1 };
   let extraSlots = 0, bonusCoins = 0, tut = null;
   let staticCv = null, unpCv = null, unpRing = -9, unpVer = -1;
   const tmpA = [], tmpB = [];
@@ -134,7 +136,7 @@
     // the level clock restarts at 0, so every timestamp taken on the old clock has to be dropped with it
     shake = { t0: -1e9, amp: 0, dur: 1 };
     revealed = new Uint8Array(L.hoses.length); rotAnim = {};
-    hintId = handId = -1; pickMode = false; lastInput = 0; nextWiggle = 2400; extraSlots = 0; bonusCoins = 0;
+    hintId = handId = -1; pickMode = false; lastInput = 0; nextWiggle = 2400; autoAt = 1200; extraSlots = 0; bonusCoins = 0;
     FX.world.p.length = 0;
     const pic = L.pic;
     ringCells = []; for (let r = 0; r < pic.rings; r++) ringCells.push([]);
@@ -329,9 +331,9 @@
     });
     after(dur, () => { W[id].bump = null; });
     // no hearts: a blocked tap never ends the level, it only costs stars (see App.onWin)
-    misses++;
+    if (!G.cheat.noMiss) misses++;
     // say so at the two bumps that actually cost a star (3 -> 2 on the first, 2 -> 1 on the third)
-    if (misses === 1 || misses === 3) {
+    if (!G.cheat.noMiss && (misses === 1 || misses === 3)) {
       const hd = L.hoses[id].cells[L.hoses[id].cells.length - 1];
       FX.text('−1 ★', sx(hd[0]), sy(hd[1]) - lay.cell * 0.45, { size: lay.u * 5.4, fill: '#ffd23f', stroke: '#8a3a12', delay: dur * 0.42, rise: lay.u * 8, life: 1100 });
     }
@@ -549,6 +551,15 @@
     }
     if (tut && tut.step === 0 && clock > 1100 && !tut.shown) { tut.shown = true; handId = suggest(); JT.UI.toast(T('tut1'), 0); }
     else if (idx < 3 && handId < 0 && hintId < 0 && clock - lastInput > (tut ? 2600 : 5500) && clock > 1500 && !exits.length && !balls.length) handId = suggest();
+    // cheat auto-play: the hint planner's move every 0.7 s of game time, waiting whenever it says to wait. With no
+    // worm left to pull there is nothing to do but let the jellies finish; it gives up only when worms could be
+    // pulled and the planner finds no way through.
+    if (G.cheat.auto && clock >= autoAt) {
+      autoAt = clock + 700;
+      const p = plan();
+      if (!p.wait && p.id >= 0) { if (pickMode) G.setPick(false); G.tapWorm(p.id); }
+      else if (!p.wait && C.options(L, S).length) { G.cheat.auto = 0; JT.UI.toast(T('ch_noSolve'), 2600); if (JT.Cheat) JT.Cheat.sync(); }
+    }
   };
 
   // The solver plans as if every jelly finished squirting before the next pull. A hint is usually followed at
@@ -601,6 +612,30 @@
   G.resume = function () { if (status === 'lost') { status = 'play'; tickAcc = 0; lastInput = clock; } };
   G.status = () => status;
   G.level = () => idx;
+
+  // ---------- cheat panel hooks (js/cheat.js) ----------
+  // Win on the spot with the given stars: the rest of the picture fills in one quick diagonal sweep, then the usual
+  // win sequence runs (left-over worms pop into coins, the win popup follows). Paint already flying still lands.
+  G.cheatWin = function (stars) {
+    if (!L || status !== 'play') return false;
+    misses = stars >= 3 ? 0 : stars === 2 ? 1 : 3;
+    const pic = L.pic;
+    for (let c = 0; c < pic.total; c++) {
+      if (S.painted[c]) continue;
+      C.markPainted(L, S, c);
+      paintedAt[c] = clock + 60 + ((c % pic.w) + ((c / pic.w) | 0)) * 16;
+    }
+    status = 'won'; hintId = handId = -1; pickMode = false; JT.UI.setPick(false); JT.UI.toast('');
+    visLeft.fill(0); visRing = pic.rings;
+    after(560, beginWin);
+    return true;
+  };
+  G.cheatLose = function (reason) {
+    if (!L || status !== 'play') return false;
+    lose(reason === 'rack' ? 'rack' : 'stuck');
+    return true;
+  };
+  G.current = () => L;
 
   // ---------- drawing ----------
   function drawPicture(ctx) {
@@ -885,6 +920,21 @@
       ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.beginPath(); ctx.arc(x - r * 0.28, y - r * 0.34, r * 0.24, 0, U.TAU); ctx.fill();
     }
   }
+  // cheat panel: every worm's number (the id the solver and the level sheets use) in a dark dot on its tail, pushed
+  // to the side of the body (above it, or left of an upright worm) so it never covers the paint count or the symbol
+  function drawIds(ctx) {
+    const r = lay.cell * 0.19;
+    ctx.font = '900 ' + (r * 1.25) + 'px Nunito, system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (let id = 0; id < L.hoses.length; id++) {
+      if (S.removed[id]) continue;
+      const c = L.hoses[id].cells, t = c[0], ax = t[0] - c[1][0], ay = t[1] - c[1][1];
+      let px = -ay, py = ax;
+      if (py > 0 || (py === 0 && px > 0)) { px = -px; py = -py; }
+      const x = sx(t[0]) + (px * 0.34 + ax * 0.14) * lay.cell, y = sy(t[1]) + (py * 0.34 + ay * 0.14) * lay.cell;
+      ctx.fillStyle = 'rgba(43,22,12,0.9)'; ctx.beginPath(); ctx.arc(x, y, r, 0, U.TAU); ctx.fill();
+      ctx.fillStyle = '#ffffff'; ctx.fillText(String(id), x, y + r * 0.08);
+    }
+  }
   function drawHand(ctx) {
     if (handId < 0 || status !== 'play' || S.removed[handId]) return;
     const wv = W[handId], m = pointAt(wv.path, wv.Lw * 0.5), u = lay.u;
@@ -904,7 +954,9 @@
     }
     ctx.save(); ctx.translate(shx, shy);
     ctx.drawImage(staticCv, 0, 0, lay.W, lay.H);
-    drawPicture(ctx); drawStrip(ctx); drawRack(ctx); drawWorms(ctx); drawExits(ctx); drawBalls(ctx); drawShots(ctx);
+    drawPicture(ctx); drawStrip(ctx); drawRack(ctx); drawWorms(ctx);
+    if (G.cheat.ids) drawIds(ctx);
+    drawExits(ctx); drawBalls(ctx); drawShots(ctx);
     FX.world.draw(ctx);
     drawHand(ctx);
     ctx.restore();
