@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Android 8 to 11 splash: the boot pink with the icon's chocolate box in the middle -->
+<!-- Android 8 to 11 splash: the boot cream with the icon's chocolate box in the middle -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/boot" />
     <item

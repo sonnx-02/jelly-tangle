@@ -44,8 +44,8 @@ import java.util.Locale;
 public class MainActivity extends Activity {
     private static final String HOST = "appassets.androidplatform.net";
     private static final String START = "https://" + HOST + "/www/index.html";
-    /** Same pink as the web boot screen, so splash, WebView and game hand over without a flash. */
-    private static final int BOOT_COLOR = 0xFFFF86B8;
+    /** The boot cream from android/res/values/colors.xml, so splash, WebView and game hand over without a flash. */
+    private static final int BOOT_COLOR = 0xFFF9EBE4;
 
     private WebView web;
     private int insetTop, insetBottom;   // display cutout, in CSS pixels

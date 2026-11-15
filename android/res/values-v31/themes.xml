@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Android 12+: the system splash screen, in the boot pink with the chocolate-box icon -->
+    <!-- Android 12+: the system splash screen, in the boot cream with the chocolate-box icon -->
     <style name="Theme.JellyTangle" parent="Base.JellyTangle">
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
         <item name="android:windowSplashScreenBackground">@color/boot</item>

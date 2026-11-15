@@ -38,9 +38,9 @@ Repo là một trang tĩnh nên cũng đẩy nguyên thư mục lên được Ne
 python tools/android/build_apk.py
 ```
 
-Ra file `dist/JellyTangle-1.0.2-debug.apk` (khoảng 290 KB, phần lớn là font và ảnh bàn tay). Script dùng thẳng công cụ của Android SDK (aapt2, javac, d8, zipalign, apksigner), không qua Gradle nên không tải thêm gì. SDK và JDK 17 lấy từ `ANDROID_HOME` / `JAVA_HOME`; nếu không đặt, script tự tìm trong bản Unity có cài Android Build Support (`C:\Program Files\Unity\Hub\Editor\<bản>\...\AndroidPlayer`).
+Ra file `dist/JellyTangle-1.1.0-debug.apk` (khoảng 300 KB, phần lớn là font và ảnh bàn tay). Script dùng thẳng công cụ của Android SDK (aapt2, javac, d8, zipalign, apksigner), không qua Gradle nên không tải thêm gì. SDK và JDK 17 lấy từ `ANDROID_HOME` / `JAVA_HOME`; nếu không đặt, script tự tìm trong bản Unity có cài Android Build Support (`C:\Program Files\Unity\Hub\Editor\<bản>\...\AndroidPlayer`).
 
-Cài lên máy: cắm điện thoại rồi chạy `adb install -r dist/JellyTangle-1.0.2-debug.apk`, hoặc chép file APK sang máy và mở (cho phép "cài ứng dụng không rõ nguồn gốc"). Khoá debug nằm ở `tools/android/keys/` (không đưa lên git) và được dùng lại, nên bản build sau cài đè lên bản trước được.
+Cài lên máy: cắm điện thoại rồi chạy `adb install -r dist/JellyTangle-1.1.0-debug.apk`, hoặc chép file APK sang máy và mở (cho phép "cài ứng dụng không rõ nguồn gốc"). Khoá debug nằm ở `tools/android/keys/` (không đưa lên git) và được dùng lại, nên bản build sau cài đè lên bản trước được.
 
 Bản phát hành ký bằng khoá riêng của bạn (mật khẩu truyền qua biến môi trường, không ghi ra dòng lệnh):
 
@@ -54,7 +54,7 @@ Thiết kế bản Android (`android/`):
 
 - **Một WebView toàn màn hình** chạy đúng các file của bản web, phục vụ từ trong APK qua địa chỉ `https://appassets.androidplatform.net/www/` (địa chỉ dành riêng cho việc này, không đi ra mạng). Nhờ có origin https cố định, tiến trình lưu trong localStorage giữ nguyên qua các lần cập nhật app.
 - **Icon thích ứng** (adaptive icon) vẽ bằng vector từ `assets/icon.svg`, nằm gọn trong vùng an toàn để mặt nạ tròn, squircle hay vuông bo góc đều không cắt góc; có bản đơn sắc cho themed icon của Android 13.
-- **Màn chờ** cùng màu hồng với màn khởi động của game (Android 12+ dùng splash hệ thống), nên không có chớp trắng khi mở app.
+- **Màn chờ** cùng màu kem với màn khởi động của game (Android 12+ dùng splash hệ thống), nên không có chớp trắng khi mở app.
 - **Toàn màn hình, khoá dọc**, vẽ tràn cả vùng tai thỏ; app báo độ cao tai thỏ cho trang qua `--st` / `--sb` để HUD tránh ra.
 - **Nút Back**: đóng popup đang mở; đang chơi thì mở menu tạm dừng; ở trang chủ thì đưa app xuống nền (`JT.App.back()` trong `js/main.js`). Rời app giữa màn thì khi quay lại gặp menu tạm dừng.
 - **Chơi offline hoàn toàn**: font Baloo 2 và Nunito nằm sẵn trong game (`assets/fonts/`, xem mục Font bên dưới), app không gửi request nào ra mạng.

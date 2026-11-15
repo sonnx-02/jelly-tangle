@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- the web boot screen's pink (between #ffb6d2 and #ff6aa6), so the native splash hands over without a flash -->
-    <color name="boot">#FFFF86B8</color>
+    <!-- the web boot screen's cream (its gradient from #fff8f1 to #f3dcd6, averaged over a phone screen), so the
+         native splash hands over without a flash -->
+    <color name="boot">#FFF9EBE4</color>
 </resources>
