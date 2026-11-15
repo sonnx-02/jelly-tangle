@@ -199,9 +199,10 @@ Chạm **5 lần liên tiếp** (mỗi lần cách nhau dưới 0,6 giây) vào 
 
 - **Màn chơi:** thông tin màn đang chọn (tranh, hộp, số ô khay, số sâu, số màu, độ khó, tỉ lệ thua của bot, màn thiết kế hay sinh tự động, cơ chế có trong màn) và **lời giải** theo số thứ tự sâu. Chọn màn bất kỳ (±1, ±10) rồi chơi (đi tới màn sau mức đang mở thì mở khoá luôn tới đó), hoặc **mở khoá mọi màn** một lần, để bộ sưu tập mở hết các thẻ (nút này có cả ở tab Hệ thống). Trong màn: thắng ngay với 3/2/1 sao, thua ngay (kẹt khay / hết nước), chơi lại, Gợi ý / Kẹp gắp / +1 ô khay miễn phí. **Tự chơi** theo bộ Gợi ý: chỉ màn này, hoặc liên tục từ màn này sang màn khác (tự bấm qua các popup). Công tắc: chạm nhầm không mất sao, hiện số trên sâu (số dùng trong lời giải và trong file màn).
 - **Kho đồ:** cộng / đặt lại xu, thêm bớt từng trợ giúp, mở khoá mọi trợ giúp, trợ giúp vô hạn.
+- **Giao diện:** ô checkbox để ẩn từng phần khỏi màn hình khi quay video: nút menu, tên màn, xu, thanh trợ giúp, lời nhắc và banner, bàn tay hướng dẫn, chữ bay và xu bay, nhãn cheat và FPS; ô "Ẩn tất cả" bật / tắt cả loạt. Các phần chỉ bị ẩn đi, vẫn giữ chỗ, nên bàn chơi không xê dịch. Tên màn đã ẩn vẫn nhận 5 lần chạm để mở lại bảng cheat.
 - **Hệ thống:** tốc độ game (¼× đến 4×), hiện FPS, mở khoá mọi màn, hoàn thành bộ sưu tập, xem lại hướng dẫn (hướng dẫn màn 1, mẹo, giới thiệu cơ chế hiện lại), xoá tiến trình (chạm 2 lần), thông tin thiết bị (web hay APK, kích thước, DPR, Hz).
 
-Các công tắc làm thay đổi cách chơi (tốc độ, không mất sao, trợ giúp vô hạn, số trên sâu) được lưu lại qua các lần mở game, và khi còn bật thì có nhãn tím **CHEAT · …** ở góc phải trên, để không ai nhầm một lượt test với lượt chơi thật.
+Các công tắc làm thay đổi cách chơi (tốc độ, không mất sao, trợ giúp vô hạn, số trên sâu) và các phần giao diện đã ẩn được lưu lại qua các lần mở game, và khi còn bật thì có nhãn tím **CHEAT · …** ở góc phải trên (nhãn "UI" khi có phần bị ẩn), để không ai nhầm một lượt test với lượt chơi thật.
 
 ## Kiểm thử tự động
 

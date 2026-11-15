@@ -367,6 +367,28 @@ canvas#fx { pointer-events: none; z-index: 40; }
 .chInfo.text span { font-variant-numeric: tabular-nums; }
 .chMsg { flex: none; min-height: calc(var(--u) * 4.4); text-align: center; font: 900 calc(var(--u) * 3.3) / 1.3 var(--body); color: var(--sageD); opacity: 0; transition: opacity .2s; }
 .chMsg.show { opacity: 1; }
+/* the UI tab's checkboxes: a box that fills with sage and a white tick when on */
+.chChecks { display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--u) * 1.8); }
+.chk {
+  display: flex; align-items: center; gap: calc(var(--u) * 2); min-height: calc(var(--u) * 10.5); padding: calc(var(--u) * 1.4) calc(var(--u) * 2.4);
+  border-radius: calc(var(--u) * 3.4); background: var(--paper); box-shadow: inset 0 0 0 1px var(--line), 0 calc(var(--u) * .6) 0 var(--edge);
+  font: 900 calc(var(--u) * 3.4) / 1.15 var(--body); color: var(--ink); text-align: left;
+}
+.chk.all { grid-column: 1 / -1; }
+.chk i {
+  flex: none; display: grid; place-items: center; width: calc(var(--u) * 5.4); height: calc(var(--u) * 5.4); border-radius: calc(var(--u) * 1.5);
+  background: #fff; box-shadow: inset 0 0 0 calc(var(--u) * .5) var(--oat); transition: background .12s, box-shadow .12s;
+}
+.chk.on i { background: var(--sage); box-shadow: inset 0 0 0 calc(var(--u) * .5) var(--sageD); }
+.chk.on i::after {
+  content: ''; width: 46%; height: 24%; border: solid #fff; border-width: 0 0 calc(var(--u) * .75) calc(var(--u) * .75);
+  transform: translateY(-18%) rotate(-45deg);
+}
+.chk span { min-width: 0; }
+/* hidden for a recording (cheat panel, UI tab): each part keeps its place, so nothing else moves */
+#app.hide-menu #btnPause, #app.hide-coins #hud .coinPill, #app.hide-boosters #bottombar, #app.hide-boosters .boosters,   /* .boosters: UI.setBoosters sets its visibility inline */
+#app.hide-tips #toast, #app.hide-tips #banner, #app.hide-overlay #cheatBadge, #app.hide-overlay #fps { visibility: hidden !important; }
+#app.hide-title #levelPill { opacity: 0; }   /* still there under the finger: five taps on it open the cheat panel */
 /* which cheats are on: a small badge under the top bar, so a test run is never mistaken for the real game */
 #cheatBadge { position: absolute; right: calc(var(--u) * 3.4); top: calc(var(--st) + var(--u) * 15); z-index: 45; pointer-events: none; padding: calc(var(--u) * .9) calc(var(--u) * 2) calc(var(--u) * .7); border-radius: 99px; background: rgba(119,104,180,.92); color: #fff; font: 900 calc(var(--u) * 2.8) / 1 var(--body); letter-spacing: .04em; white-space: nowrap; box-shadow: 0 calc(var(--u) * .6) calc(var(--u) * 1.4) rgba(40,20,60,.25); }
 #modal.open ~ #cheatBadge { visibility: hidden; }   /* a popup covers the bars anyway; the badge would sit on its close button */

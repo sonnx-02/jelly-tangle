@@ -3,6 +3,8 @@
      Level   what the level is made of and its solution, jump to any level, win or lose on the spot, free boosters,
              auto-play with the hint planner (this level, or level after level), no lost stars, worm numbers
      Items   coins and boosters, endless boosters
+     UI      hide parts of the screen for clean recordings: menu button, level title, coins, boosters, tips and
+             banners, the tutorial hand, floating text, the cheat badge and FPS meter
      System  game speed, FPS meter, progress (unlock, complete, replay the tutorial, reset), device facts
    Switches that change how the game plays survive a restart (Save.data.cheat) and show in a small badge while they
    are on, so a test run is never mistaken for the real game. */
@@ -14,11 +16,14 @@
   const TAPS = 5, GAP = 600;                 // five taps, each within 0.6 s of the one before
   const SPEEDS = [0.25, 0.5, 1, 2, 4];
   const LAST_LEVEL = 999;
+  // what the UI tab can hide; each is an #app class "hide-<name>" in css/style.css, except hand and texts (canvas)
+  const HIDE = ['menu', 'title', 'coins', 'boosters', 'tips', 'hand', 'texts', 'overlay'];
   const Cheat = JT.Cheat = {};
   let tab = 'level', sel = 0, msgTimer = 0, sure = 0;
   const sols = new Map();                    // level index -> solver answer, so stepping through levels stays quick
 
   const opts = () => Save.data.cheat;
+  const hidden = () => Save.data.cheat.hide || (Save.data.cheat.hide = {});
   const inLevel = () => JT.App.state === 'game' && G.status() === 'play';
   const speedLabel = v => (v === 0.25 ? '¼×' : v === 0.5 ? '½×' : v + '×');
 
@@ -52,6 +57,7 @@
     const o = opts();
     JT.App.speed = SPEEDS.includes(o.speed) ? o.speed : 1;
     G.cheat.noMiss = !!o.noMiss; G.cheat.ids = !!o.ids;
+    applyHide();
     // auto-play: "this level" stops at its win; "non-stop" answers the popups between levels by itself
     const after = (name, fn) => { const orig = UI[name]; UI[name] = function () { const r = orig.apply(UI, arguments); fn(); return r; }; };
     const press = (id, ms) => setTimeout(() => { const b = $(id); if (b && b.isConnected && G.cheat.auto === 2) b.click(); }, ms);
@@ -70,6 +76,7 @@
     if (o.noMiss) tags.push('★');
     if (o.infinite) tags.push('∞');
     if (o.ids) tags.push('#');
+    if (HIDE.some(k => hidden()[k])) tags.push('UI');
     const b = $('cheatBadge');
     b.classList.toggle('hidden', !tags.length);
     b.textContent = 'CHEAT · ' + tags.join(' · ');
@@ -79,7 +86,7 @@
   Cheat.open = function () {
     sel = JT.App.state === 'game' ? JT.App.cur : Save.data.level;
     sure = 0;
-    const tabs = [['level', 'ch_tabLevel'], ['bag', 'ch_tabBag'], ['sys', 'ch_tabSys']];
+    const tabs = [['level', 'ch_tabLevel'], ['bag', 'ch_tabBag'], ['ui', 'ch_tabUi'], ['sys', 'ch_tabSys']];
     const card = UI.modal(
       '<div class="ribbon dark">' + T('ch_title') + '</div><button class="close" id="mClose" aria-label="Close">' + UI.ICON.close + '</button>' +
       '<div class="seg chTabs">' + tabs.map(t => '<button data-tab="' + t[0] + '"' + (t[0] === tab ? ' class="on"' : '') + '>' + T(t[1]) + '</button>').join('') + '</div>' +
@@ -99,7 +106,7 @@
   function render() {
     const body = $('chBody');
     if (!body) return;
-    body.innerHTML = tab === 'level' ? levelTab() : tab === 'bag' ? bagTab() : sysTab();
+    body.innerHTML = tab === 'level' ? levelTab() : tab === 'bag' ? bagTab() : tab === 'ui' ? uiTab() : sysTab();
     const cv = body.querySelector('.chPic');
     if (cv) { const pic = C.picInfo(cv.dataset.k), ctx = cv.getContext('2d'); ctx.clearRect(0, 0, cv.width, cv.height); R.picture(ctx, pic, 0, 0, cv.width / pic.w, true); }
   }
@@ -183,6 +190,27 @@
       sw('infinite', o.infinite, T('ch_infinite'));
   }
 
+  // ---------- tab: ui ----------
+  // A checkbox per part of the screen, and one for all of them. Hidden parts keep their place, so the board does
+  // not move between a recording and normal play.
+  function uiTab() {
+    const h = hidden(), all = HIDE.every(k => h[k]);
+    const box = (k, on, label, cls) => '<button class="chk' + (cls ? ' ' + cls : '') + (on ? ' on' : '') + '" data-hide="' + k + '" role="checkbox" aria-checked="' + on + '"><i></i><span>' + label + '</span></button>';
+    return head('ch_hideHead') + '<p class="chNote">' + T('ch_hideNote') + '</p>' +
+      '<div class="chChecks">' + box('*', all, T('ch_hideAll'), 'all') + HIDE.map(k => box(k, !!h[k], T('ch_hide_' + k))).join('') + '</div>';
+  }
+  function toggleHide(k) {
+    const h = hidden();
+    if (k === '*') { const all = !HIDE.every(x => h[x]); HIDE.forEach(x => { h[x] = all; }); }
+    else h[k] = !h[k];
+    Save.save(); applyHide(); Cheat.sync(); render();
+  }
+  function applyHide() {
+    const h = hidden(), app = $('app');
+    HIDE.forEach(k => app.classList.toggle('hide-' + k, !!h[k]));
+    G.cheat.noHand = !!h.hand; JT.FX.hideText = !!h.texts;
+  }
+
   // ---------- tab: system ----------
   function sysTab() {
     const A = JT.App, apk = /JellyTangleApp\/([\w.]+)/.exec(navigator.userAgent);
@@ -202,6 +230,7 @@
     const b = e.target.closest('button');
     if (!b || b.disabled) return;
     if (b.dataset.sw) toggle(b.dataset.sw);
+    else if (b.dataset.hide) toggleHide(b.dataset.hide);
     else if (b.parentNode.dataset.seg) choose(b.parentNode.dataset.seg, +b.dataset.v);
     else if (b.dataset.act) act(b.dataset.act, b);
   }

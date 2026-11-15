@@ -88,8 +88,9 @@
       tips: {},                 // one-time tips already shown
       // English by default; langPicked: the player chose a language in Settings (only then is lang kept on load)
       settings: { sfx: true, music: true, haptic: true, lang: 'en', langPicked: false, fps: false, symbols: false },
-      // cheat panel switches that last (js/cheat.js): game speed, no lost stars, boosters never used up, worm numbers
-      cheat: { speed: 1, noMiss: false, infinite: false, ids: false }
+      // cheat panel switches that last (js/cheat.js): game speed, no lost stars, boosters never used up, worm numbers,
+      // parts of the screen hidden for recordings (hide: name -> true)
+      cheat: { speed: 1, noMiss: false, infinite: false, ids: false, hide: {} }
     };
   }
   const Save = JT.Save = {

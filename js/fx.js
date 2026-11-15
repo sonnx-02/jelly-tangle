@@ -119,8 +119,10 @@
 
   FX.busy = function () { return FX.top.p.length || FX.texts.length || FX.coins.length; };
 
+  FX.hideText = false;   // cheat panel, for recordings: floating text and flying coins still run, unseen
   FX.drawTop = function (ctx) {
     FX.top.draw(ctx);
+    if (FX.hideText) return;
     for (const c of FX.coins) {
       if (c.age < 0) continue;
       const p = c.age / c.dur, e = E.inOutCubic(p), a = 1 - e;

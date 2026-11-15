@@ -9,8 +9,9 @@
   // TICK: one cell per jelly per tick. 120 ms keeps the squirting readable (it was 70 ms: a jar emptied before you could see it)
   const TICK = 120, SHOT = 240, FLY = 330;
   // cheat: switches the cheat panel (js/cheat.js) sets. noMiss: blocked taps cost no star; ids: each worm's number
-  // on its tail; auto: 0 off, 1 play this level with the hint planner, 2 keep going level after level
-  const G = JT.Game = { paused: false, cheat: { noMiss: false, ids: false, auto: 0 } };
+  // on its tail; auto: 0 off, 1 play this level with the hint planner, 2 keep going level after level; noHand: no
+  // pointing hand (the tutorial's and the idle hint's), for recordings
+  const G = JT.Game = { paused: false, cheat: { noMiss: false, ids: false, auto: 0, noHand: false } };
 
   let L = null, S = null, idx = 0, lay = null, layVer = 0;
   let clock = 0, tickAcc = 0, status = 'idle', misses = 0;
@@ -937,7 +938,7 @@
     }
   }
   function drawHand(ctx) {
-    if (handId < 0 || status !== 'play' || S.removed[handId]) return;
+    if (handId < 0 || status !== 'play' || S.removed[handId] || G.cheat.noHand) return;
     const wv = W[handId], m = pointAt(wv.path, wv.Lw * 0.5), u = lay.u;
     const ph = (clock % 1100) / 1100, press = ph < 0.5 ? Math.sin(ph * 2 * Math.PI) : 0;
     const x = sx(m.x), y = sy(m.y);
