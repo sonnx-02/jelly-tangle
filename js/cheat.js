@@ -1,5 +1,5 @@
-/* Cheat panel, for testing. Tap a level title ("Màn N": the level pill in a level, or the ribbon on the home card)
-   five times in a row to open it.
+/* Cheat panel, for testing. Tap a level title ("Level N" / "Màn N": the level pill in a level, or the ribbon on the
+   home card) five times in a row to open it.
      Level   what the level is made of and its solution, jump to any level, win or lose on the spot, free boosters,
              auto-play with the hint planner (this level, or level after level), no lost stars, worm numbers
      Items   coins and boosters, endless boosters

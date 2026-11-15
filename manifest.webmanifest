@@ -1,7 +1,7 @@
 {
   "name": "Jelly Tangle",
   "short_name": "Jelly Tangle",
-  "description": "Gỡ sâu kẹo dẻo, lấp đầy tranh jelly.",
+  "description": "Untangle gummy worms, fill in jelly pictures.",
   "start_url": ".",
   "scope": ".",
   "display": "fullscreen",

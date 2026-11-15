@@ -33,8 +33,8 @@ KEYS = ROOT / "tools" / "android" / "keys"
 DIST = ROOT / "dist"
 
 APP_ID = "vn.sonat.jellytangle"
-VERSION_CODE = 4
-VERSION_NAME = "1.1.0"
+VERSION_CODE = 5
+VERSION_NAME = "1.1.1"
 MIN_SDK = 26          # Android 8.0: adaptive vector icons, no bitmap fallbacks needed
 TARGET_SDK = 35       # Android 15
 WEB_FILES = ["index.html", "manifest.webmanifest", "css", "js", "assets"]

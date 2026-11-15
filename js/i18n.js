@@ -138,10 +138,10 @@
   };
 
   const I = JT.I18n = {
-    lang() { return JT.Save.data.settings.lang === 'en' ? 'en' : 'vi'; },
+    lang() { return JT.Save.data.settings.lang === 'vi' ? 'vi' : 'en'; },
     t(key, vars) {
       let s = S[I.lang()][key];
-      if (s === undefined) s = S.vi[key] !== undefined ? S.vi[key] : key;
+      if (s === undefined) s = S.en[key] !== undefined ? S.en[key] : key;
       if (vars && typeof s === 'string') for (const k in vars) s = s.replace('{' + k + '}', vars[k]);
       return s;
     },

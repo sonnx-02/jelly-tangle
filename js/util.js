@@ -86,7 +86,8 @@
       claimed: [],              // album pages whose reward was paid
       seenIntro: [],            // mechanic intros already shown
       tips: {},                 // one-time tips already shown
-      settings: { sfx: true, music: true, haptic: true, lang: 'vi', fps: false, symbols: false },
+      // English by default; langPicked: the player chose a language in Settings (only then is lang kept on load)
+      settings: { sfx: true, music: true, haptic: true, lang: 'en', langPicked: false, fps: false, symbols: false },
       // cheat panel switches that last (js/cheat.js): game speed, no lost stars, boosters never used up, worm numbers
       cheat: { speed: 1, noMiss: false, infinite: false, ids: false }
     };
@@ -101,6 +102,8 @@
           Save.data = Object.assign(base, d);
           Save.data.boosters = Object.assign(defaults().boosters, d.boosters || {});
           Save.data.settings = Object.assign(defaults().settings, d.settings || {});
+          // saves from before English became the default all hold lang: 'vi', picked or not: keep only a picked one
+          if (!Save.data.settings.langPicked) Save.data.settings.lang = 'en';
           Save.data.cheat = Object.assign(defaults().cheat, d.cheat || {});
         }
       } catch (e) { Save.data = defaults(); }

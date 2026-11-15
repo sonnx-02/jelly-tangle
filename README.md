@@ -38,9 +38,9 @@ Repo là một trang tĩnh nên cũng đẩy nguyên thư mục lên được Ne
 python tools/android/build_apk.py
 ```
 
-Ra file `dist/JellyTangle-1.1.0-debug.apk` (khoảng 300 KB, phần lớn là font và ảnh bàn tay). Script dùng thẳng công cụ của Android SDK (aapt2, javac, d8, zipalign, apksigner), không qua Gradle nên không tải thêm gì. SDK và JDK 17 lấy từ `ANDROID_HOME` / `JAVA_HOME`; nếu không đặt, script tự tìm trong bản Unity có cài Android Build Support (`C:\Program Files\Unity\Hub\Editor\<bản>\...\AndroidPlayer`).
+Ra file `dist/JellyTangle-1.1.1-debug.apk` (khoảng 300 KB, phần lớn là font và ảnh bàn tay). Script dùng thẳng công cụ của Android SDK (aapt2, javac, d8, zipalign, apksigner), không qua Gradle nên không tải thêm gì. SDK và JDK 17 lấy từ `ANDROID_HOME` / `JAVA_HOME`; nếu không đặt, script tự tìm trong bản Unity có cài Android Build Support (`C:\Program Files\Unity\Hub\Editor\<bản>\...\AndroidPlayer`).
 
-Cài lên máy: cắm điện thoại rồi chạy `adb install -r dist/JellyTangle-1.1.0-debug.apk`, hoặc chép file APK sang máy và mở (cho phép "cài ứng dụng không rõ nguồn gốc"). Khoá debug nằm ở `tools/android/keys/` (không đưa lên git) và được dùng lại, nên bản build sau cài đè lên bản trước được.
+Cài lên máy: cắm điện thoại rồi chạy `adb install -r dist/JellyTangle-1.1.1-debug.apk`, hoặc chép file APK sang máy và mở (cho phép "cài ứng dụng không rõ nguồn gốc"). Khoá debug nằm ở `tools/android/keys/` (không đưa lên git) và được dùng lại, nên bản build sau cài đè lên bản trước được.
 
 Bản phát hành ký bằng khoá riêng của bạn (mật khẩu truyền qua biến môi trường, không ghi ra dòng lệnh):
 
@@ -94,9 +94,9 @@ js/render.js            nét vẽ Canvas 2D: nền giấy, thẻ sứ, hộp sô
 js/fx.js                hạt, chữ bay, xu bay
 js/audio.js             âm thanh ASMR và nhạc nền, dựng từng mẫu bằng JavaScript (không có file âm thanh), rung
 js/ui.js                trang chủ, HUD, toàn bộ popup
-js/cheat.js             bảng cheat để test (chạm 5 lần vào chữ "Màn N")
+js/cheat.js             bảng cheat để test (chạm 5 lần vào chữ "Level N" / "Màn N")
 js/main.js              khởi động, vòng lặp, luồng màn hình, kinh tế trong game
-js/i18n.js              chuỗi Tiếng Việt và English
+js/i18n.js              chuỗi English (mặc định) và Tiếng Việt
 js/util.js              toán, easing, màu, lưu tiến trình (localStorage)
 tools/levels.html       công cụ nướng màn
 tools/import_levels.py  nhập bộ màn thiết kế (file JSON) vào js/level-data.js
@@ -149,6 +149,7 @@ Giao diện được thiết kế cho nhóm người chơi chính của dòng pu
 - **Mục tiêu nhìn thấy được:** thẻ màn ở trang chủ cho biết tranh sắp làm thuộc trang nào của bộ sưu tập và trang đó đã xong mấy tranh. Bảng thắng đóng khung bức tranh như một bản in.
 - **Lớp thi đua nhẹ cho người chơi nhanh:** bảng thắng hiện thời gian chơi màn đó (không tính lúc tạm dừng) và kỷ lục của chính người chơi. "Kỷ lục mới!" chỉ hiện khi phá kỷ lục cũ, không hiện ở lần thắng đầu. Trong lúc chơi không có đồng hồ, để không tạo áp lực.
 - **Chuyển động chậm và mềm:** nút chính "thở" nhẹ thay vì nảy, logo trôi nhẹ, các bé sâu ở trang chủ ít và chậm hơn, màu nhạt hơn một chút để lùi về làm nền.
+- **Tiếng Anh là ngôn ngữ mặc định**, đổi sang tiếng Việt ở Settings → Language. Game chỉ giữ ngôn ngữ người chơi tự chọn (`settings.langPicked` trong `js/util.js`). Save cũ chưa từng chọn sẽ chuyển sang tiếng Anh, vì trước đây save nào cũng ghi sẵn `lang: 'vi'`, dù người chơi có chọn hay không.
 
 Các token màu, bóng và cỡ chữ nằm ở đầu `css/style.css`. Canvas dùng cùng bảng màu (`R.TRAY`, `R.PICBG`, `R.panel` trong `js/render.js`).
 
@@ -192,7 +193,7 @@ Nhạc nền là đàn kalimba chậm (84 bpm) trên nền bass sin mềm, đi q
 
 ## Bảng cheat (để test)
 
-Chạm **5 lần liên tiếp** (mỗi lần cách nhau dưới 0,6 giây) vào chữ "Màn N": ở thanh trên cùng khi đang chơi, hoặc ở ruy-băng của thẻ màn ngoài trang chủ. Bảng mở ra như một popup của game và game tạm dừng trong lúc mở.
+Chạm **5 lần liên tiếp** (mỗi lần cách nhau dưới 0,6 giây) vào chữ "Level N" ("Màn N" khi chơi tiếng Việt): ở thanh trên cùng khi đang chơi, hoặc ở ruy-băng của thẻ màn ngoài trang chủ. Bản web và bản APK đều có bảng này. Bảng mở ra như một popup của game và game tạm dừng trong lúc mở.
 
 - **Màn chơi:** thông tin màn đang chọn (tranh, hộp, số ô khay, số sâu, số màu, độ khó, tỉ lệ thua của bot, màn thiết kế hay sinh tự động, cơ chế có trong màn) và **lời giải** theo số thứ tự sâu. Chọn màn bất kỳ (±1, ±10) rồi chơi (đi tới màn sau mức đang mở thì mở khoá luôn tới đó). Trong màn: thắng ngay với 3/2/1 sao, thua ngay (kẹt khay / hết nước), chơi lại, Gợi ý / Kẹp gắp / +1 ô khay miễn phí. **Tự chơi** theo bộ Gợi ý: chỉ màn này, hoặc liên tục từ màn này sang màn khác (tự bấm qua các popup). Công tắc: chạm nhầm không mất sao, hiện số trên sâu (số dùng trong lời giải và trong file màn).
 - **Kho đồ:** cộng / đặt lại xu, thêm bớt từng trợ giúp, mở khoá mọi trợ giúp, trợ giúp vô hạn.
@@ -217,6 +218,6 @@ JT.Game.cheat.auto = 2        // tự chơi liên tục (như nút "Liên tục"
 
 ## Trạng thái
 
-Đã có: 60 màn (10 màn đầu thiết kế tay), 30 tranh trong 5 trang bộ sưu tập, 4 cơ chế nâng cao, 3 trợ giúp, sao, xu, thời gian và kỷ lục từng màn, hướng dẫn màn đầu, hai ngôn ngữ, lưu tiến trình, giao diện "tiệm bánh" cho người chơi 25–45 tuổi, âm thanh ASMR tổng hợp, bảng cheat để test, bản Android (APK).
+Đã có: 60 màn (10 màn đầu thiết kế tay), 30 tranh trong 5 trang bộ sưu tập, 4 cơ chế nâng cao, 3 trợ giúp, sao, xu, thời gian và kỷ lục từng màn, hướng dẫn màn đầu, hai ngôn ngữ (mặc định tiếng Anh), lưu tiến trình, giao diện "tiệm bánh" cho người chơi 25–45 tuổi, âm thanh ASMR tổng hợp, bảng cheat để test, bản Android (APK).
 
 Chưa có: quảng cáo và mua trong ứng dụng (giá xu hiện chỉ để minh hoạ), service worker để bản web chơi offline (bản Android đã chơi offline được).

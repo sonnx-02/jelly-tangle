@@ -246,7 +246,7 @@
     const row = (k, ico, lbl) => '<div class="setRow"><span class="lbl">' + ico + lbl + '</span><button class="switch' + (s[k] ? ' on' : '') + '" data-k="' + k + '" role="switch" aria-checked="' + !!s[k] + '" aria-label="' + lbl + '"></button></div>';
     return row('sfx', ICON.sound, T('sound')) + row('music', ICON.music, T('music')) + row('haptic', ICON.haptic, T('haptic')) +
       row('symbols', ICON.symbols, T('symbols')) + (devMode() ? row('fps', ICON.fps, T('showFps')) : '') +
-      '<div class="setRow col"><span class="lbl">' + ICON.lang + T('language') + '</span><div class="seg"><button data-l="vi" class="' + (s.lang !== 'en' ? 'on' : '') + '">Tiếng Việt</button><button data-l="en" class="' + (s.lang === 'en' ? 'on' : '') + '">English</button></div></div>';
+      '<div class="setRow col"><span class="lbl">' + ICON.lang + T('language') + '</span><div class="seg"><button data-l="en" class="' + (JT.I18n.lang() === 'en' ? 'on' : '') + '">English</button><button data-l="vi" class="' + (JT.I18n.lang() === 'vi' ? 'on' : '') + '">Tiếng Việt</button></div></div>';
   }
   UI.settings = function (inGame) {
     const close = () => UI.closeModal();
@@ -266,7 +266,7 @@
       if (k === 'symbols') { R.symbols = s[k]; R.clearCache(); if (JT.App.state === 'game') JT.Game.layout(); else UI.updateHome(); }
     }));
     card.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
-      Save.data.settings.lang = b.dataset.l; Save.save();
+      Save.data.settings.lang = b.dataset.l; Save.data.settings.langPicked = true; Save.save();
       UI.refreshTexts(); UI.setBoosters();
       if (inGame) UI.setLevel(JT.App.cur, JT.Levels.get(JT.App.cur)); else UI.updateHome();
       UI.settings(inGame);
