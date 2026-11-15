@@ -30,12 +30,25 @@
       const now = performance.now();
       n = now - last < GAP ? n + 1 : 1;
       last = now;
-      if (n >= TAPS) { n = 0; Cheat.open(); }
+      if (n >= TAPS) { n = 0; burst = now; Cheat.open(); }
     });
+  }
+  // Quick taps often run on past the fifth, and by then the panel is open under the finger. Taps that still come less
+  // than GAP apart belong to the burst that opened it: they are swallowed, so they neither close the panel again nor
+  // press one of its buttons.
+  let burst = 0;                             // performance.now() of the latest tap of that burst (0: none)
+  function swallow(e) {
+    if (!burst) return;
+    if (performance.now() - burst >= GAP) { burst = 0; return; }
+    if (!$('modal').contains(e.target)) return;
+    if (e.type === 'pointerdown') burst = performance.now();
+    e.stopPropagation(); e.preventDefault();
   }
 
   Cheat.init = function () {
     tapper($('levelPill')); tapper($('hLevel'));
+    document.addEventListener('pointerdown', swallow, true);
+    document.addEventListener('click', swallow, true);
     const o = opts();
     JT.App.speed = SPEEDS.includes(o.speed) ? o.speed : 1;
     G.cheat.noMiss = !!o.noMiss; G.cheat.ids = !!o.ids;

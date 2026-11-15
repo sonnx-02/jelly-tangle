@@ -299,7 +299,14 @@ canvas#fx { pointer-events: none; z-index: 40; }
 .pageDots i.full { background: var(--sage); }
 
 /* ---------- cheat panel (five taps on a level title, js/cheat.js) ---------- */
-.card.cheat { height: 100%; padding: calc(var(--u) * 7) calc(var(--u) * 4.5) calc(var(--u) * 3); gap: calc(var(--u) * 2.4); text-align: left; }
+/* A sheet over the whole screen, from just under the status bar: it covers the level title that opened it, so taps
+   that run on past the fifth land on the panel, not on the backdrop that closes it, and its body scrolls inside it.
+   Placed absolutely because as a grid item its height: 100% resolved against a row grown to the panel's content,
+   which pushed the bottom of the panel off the screen. */
+.card.cheat {
+  position: absolute; inset: calc(var(--st) + var(--u) * 2) calc(var(--u) * 3.5) calc(var(--sb) + var(--u) * 3); width: auto; max-height: none;
+  padding: calc(var(--u) * 7) calc(var(--u) * 4.5) calc(var(--u) * 3); gap: calc(var(--u) * 2.4); text-align: left;
+}
 .card.cheat .ribbon { text-align: center; font-size: calc(var(--u) * 6); letter-spacing: .08em; }
 .card.cheat .chTabs { flex: none; }
 .chBody {
