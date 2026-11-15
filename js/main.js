@@ -240,6 +240,7 @@
     fpsEl = document.getElementById('fps');
     UI.init();
     if (JT.Cheat) JT.Cheat.init();
+    if (JT.Cursor) JT.Cursor.init();
     App.resize();
     initHome();
     window.addEventListener('resize', App.resize);

@@ -342,12 +342,20 @@
     HAND.px = px; HAND.k = k; HAND.pad = pad;
     return cv;
   }
-  // (x, y) is the fingertip, h the glove's height; press 0..1 squashes it a little towards the fingertip
+  // (x, y) is the fingertip, h the glove's height; press 0..1 squashes it a little towards the fingertip.
+  // False while the picture is still loading (nothing drawn).
   R.hand = function (ctx, x, y, h, press) {
-    if (!HAND.img.complete || !HAND.img.naturalWidth) return;   // still loading: no hand this frame
+    if (!HAND.img.complete || !HAND.img.naturalWidth) return false;
     const cv = handSprite(h), sc = (1 - press * 0.1) / R.dpr;
     ctx.save(); ctx.translate(x, y); ctx.scale(sc, sc);
     ctx.drawImage(cv, -(HAND.pad + HAND.tipX * HAND.k), -(HAND.pad + HAND.tipY * HAND.k));
     ctx.restore();
+    return true;
+  };
+  // how far a glove h high (shadow included) reaches around its fingertip, in CSS pixels
+  R.handBox = function (h) {
+    const px = Math.max(8, Math.round(h * R.dpr)), k = px / HAND.h, pad = Math.ceil(px * 0.1);
+    return { left: (pad + HAND.tipX * k) / R.dpr, top: (pad + HAND.tipY * k) / R.dpr,
+      right: (Math.ceil(HAND.w * k) + pad - HAND.tipX * k) / R.dpr, bottom: (px + pad - HAND.tipY * k) / R.dpr };
   };
 })();

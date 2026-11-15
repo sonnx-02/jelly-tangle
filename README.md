@@ -95,6 +95,7 @@ js/fx.js                hạt, chữ bay, xu bay
 js/audio.js             âm thanh ASMR và nhạc nền, dựng từng mẫu bằng JavaScript (không có file âm thanh), rung
 js/ui.js                trang chủ, HUD, toàn bộ popup
 js/cheat.js             bảng cheat để test (chạm 5 lần vào chữ "Level N" / "Màn N")
+js/cursor.js            bàn tay hướng dẫn làm con trỏ chuột khi chơi
 js/main.js              khởi động, vòng lặp, luồng màn hình, kinh tế trong game
 js/i18n.js              chuỗi English (mặc định) và Tiếng Việt
 js/util.js              toán, easing, màu, lưu tiến trình (localStorage)
@@ -150,6 +151,7 @@ Giao diện được thiết kế cho nhóm người chơi chính của dòng pu
 - **Lớp thi đua nhẹ cho người chơi nhanh:** bảng thắng hiện thời gian chơi màn đó (không tính lúc tạm dừng) và kỷ lục của chính người chơi. "Kỷ lục mới!" chỉ hiện khi phá kỷ lục cũ, không hiện ở lần thắng đầu. Trong lúc chơi không có đồng hồ, để không tạo áp lực.
 - **Chuyển động chậm và mềm:** nút chính "thở" nhẹ thay vì nảy, logo trôi nhẹ, các bé sâu ở trang chủ ít và chậm hơn, màu nhạt hơn một chút để lùi về làm nền.
 - **Tiếng Anh là ngôn ngữ mặc định**, đổi sang tiếng Việt ở Settings → Language. Game chỉ giữ ngôn ngữ người chơi tự chọn (`settings.langPicked` trong `js/util.js`). Save cũ chưa từng chọn sẽ chuyển sang tiếng Anh, vì trước đây save nào cũng ghi sẵn `lang: 'vi'`, dù người chơi có chọn hay không.
+- **Con trỏ bàn tay khi chơi bằng chuột:** trong màn chơi (cả popup trong màn), con trỏ là bàn tay đeo găng của phần hướng dẫn màn 1. Đầu ngón tay nằm đúng chỗ chuột trỏ; khi bấm, ngón tay ấn xuống như cú chạm trong hướng dẫn và để lại một vòng trắng. Chạm bằng tay hay bút thì bàn tay ẩn đi; ở trang chủ con trỏ thường quay lại.
 
 Các token màu, bóng và cỡ chữ nằm ở đầu `css/style.css`. Canvas dùng cùng bảng màu (`R.TRAY`, `R.PICBG`, `R.panel` trong `js/render.js`).
 
@@ -218,6 +220,6 @@ JT.Game.cheat.auto = 2        // tự chơi liên tục (như nút "Liên tục"
 
 ## Trạng thái
 
-Đã có: 60 màn (10 màn đầu thiết kế tay), 30 tranh trong 5 trang bộ sưu tập, 4 cơ chế nâng cao, 3 trợ giúp, sao, xu, thời gian và kỷ lục từng màn, hướng dẫn màn đầu, hai ngôn ngữ (mặc định tiếng Anh), lưu tiến trình, giao diện "tiệm bánh" cho người chơi 25–45 tuổi, âm thanh ASMR tổng hợp, bảng cheat để test, bản Android (APK).
+Đã có: 60 màn (10 màn đầu thiết kế tay), 30 tranh trong 5 trang bộ sưu tập, 4 cơ chế nâng cao, 3 trợ giúp, sao, xu, thời gian và kỷ lục từng màn, hướng dẫn màn đầu, hai ngôn ngữ (mặc định tiếng Anh), lưu tiến trình, giao diện "tiệm bánh" cho người chơi 25–45 tuổi, âm thanh ASMR tổng hợp, con trỏ bàn tay khi chơi bằng chuột, bảng cheat để test, bản Android (APK).
 
 Chưa có: quảng cáo và mua trong ứng dụng (giá xu hiện chỉ để minh hoạ), service worker để bản web chơi offline (bản Android đã chơi offline được).
